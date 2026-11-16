@@ -8,7 +8,7 @@ Move the story map builder from `dffoodev/fields` (React 19 + Vite) into this re
 
 - Nothing is persisted by the app. State lives in memory for the page's lifetime; story JSON files the user saves are the only persistence.
 - The app reads no local disk and runs no Node code at runtime, so it works hosted.
-- The name tables stay in the private `dffoodev/resources` repo. This app installs them as the npm package `@dffoodev/resources` from GitHub Packages. Publishing them into the static site is the trade-off of hosting the editor.
+- The name tables live in the public `dffoodev/resources` repo. This app installs that repo as `@dffoodev/resources`. Publishing the tables into the static site is the trade-off of hosting the editor.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Move the story map builder from `dffoodev/fields` (React 19 + Vite) into this re
 
 ## Names (resources)
 
-`dffoodev/resources` is published as `@dffoodev/resources` to GitHub Packages. Its `package.json` exports `data/*.json`. A workflow publishes on a `v*` tag. The field-editor repository is granted read access to the package, so CI uses `GITHUB_TOKEN`. A local install needs `NODE_AUTH_TOKEN` (a `read:packages` token) and the committed `.npmrc`.
+`dffoodev/resources` is installed with `github:dffoodev/resources#<commit>`. Its `package.json` exports `data/*.json`. No registry token is required, so fork pull requests can install it.
 
 `loadResources()` loads the nine tables in parallel. A failure names the table that failed. `stage-names.json` is merged over `stages` as before. The tables are bundled into the static site, so the pickers are filled without a file upload.
 
@@ -39,7 +39,7 @@ Move the story map builder from `dffoodev/fields` (React 19 + Vite) into this re
 
 - `examples/field-001.json`, `docs/contributing-content.md`, `docs/stages.md`, `README.md`: port 3000, the npm resources install, and `npm run field-maps` for maintainers.
 - `.gitignore`: `node_modules/`, `.next/`, `out/`, `next-env.d.ts`, `/archive/`, `/tools/`. PNGs under `public/field-maps/` are committed.
-- `.github/workflows/ci.yml`: Node 22, `permissions: packages: read`, `npm ci` with `NODE_AUTH_TOKEN`, `npm test`, `npm run build`.
+- `.github/workflows/ci.yml`: Node 22, `npm ci`, `npm test`, `npm run build`.
 
 ## Testing
 
@@ -52,4 +52,4 @@ Move the story map builder from `dffoodev/fields` (React 19 + Vite) into this re
 
 ## Out of scope
 
-UI redesign, zod 4, decoding `.g1t` in the browser, any persistence beyond saved story files, changes to `dffoodev/fields`. Fork pull requests from outside the org cannot read the private package.
+UI redesign, zod 4, decoding `.g1t` in the browser, any persistence beyond saved story files, changes to `dffoodev/fields`.

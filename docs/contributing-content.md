@@ -4,9 +4,7 @@ Story maps are JSON files. The editor loads and saves them in the browser; nothi
 
 ## Names
 
-Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dffoodev/resources`, installed from GitHub Packages. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
-
-Install needs `NODE_AUTH_TOKEN` set to a token that can read `dffoodev` packages. See the [README](../README.md).
+Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dffoodev/resources`, installed from the public [resources](https://github.com/dffoodev/resources) repository. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
 
 ## Run the editor
 

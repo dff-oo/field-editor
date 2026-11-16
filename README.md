@@ -4,10 +4,9 @@ A browser editor for Dissidia Final Fantasy Opera Omnia story maps. A map is a J
 
 ## Run it
 
-The name tables are the private npm package `@dffoodev/resources` on GitHub Packages. `NODE_AUTH_TOKEN` has to be a token that can read packages from the `dffoodev` org (a classic token with `read:packages`, or `GITHUB_TOKEN` in this repo's Actions).
+The name tables come from the public [resources](https://github.com/dffoodev/resources) repository, installed as `@dffoodev/resources`. No token is required.
 
 ```bash
-set NODE_AUTH_TOKEN=your-token
 npm install
 npm run dev
 ```
