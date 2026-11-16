@@ -1,0 +1,8 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+
+# A maintainer's local client archive and unpacker, used only by npm run field-maps.
+/archive/
+/tools/

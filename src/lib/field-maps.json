@@ -1,0 +1,550 @@
+{
+  "1": {
+    "file": "001.png",
+    "scale": 2
+  },
+  "2": {
+    "file": "002.png",
+    "scale": 3
+  },
+  "3": {
+    "file": "003.png",
+    "scale": 3
+  },
+  "4": {
+    "file": "004.png",
+    "scale": 3
+  },
+  "5": {
+    "file": "005.png",
+    "scale": 3
+  },
+  "6": {
+    "file": "006.png",
+    "scale": 3
+  },
+  "7": {
+    "file": "007.png",
+    "scale": 3
+  },
+  "8": {
+    "file": "008.png",
+    "scale": 3
+  },
+  "9": {
+    "file": "009.png",
+    "scale": 3
+  },
+  "10": {
+    "file": "010.png",
+    "scale": 3
+  },
+  "11": {
+    "file": "011.png",
+    "scale": 2
+  },
+  "57": {
+    "file": "057.png",
+    "scale": 2
+  },
+  "58": {
+    "file": "058.png",
+    "scale": 2
+  },
+  "59": {
+    "file": "059.png",
+    "scale": 2
+  },
+  "60": {
+    "file": "060.png",
+    "scale": 2
+  },
+  "61": {
+    "file": "061.png",
+    "scale": 2
+  },
+  "182": {
+    "file": "182.png",
+    "scale": 2
+  },
+  "183": {
+    "file": "183.png",
+    "scale": 2
+  },
+  "184": {
+    "file": "184.png",
+    "scale": 2
+  },
+  "185": {
+    "file": "185.png",
+    "scale": 2
+  },
+  "186": {
+    "file": "186.png",
+    "scale": 2
+  },
+  "187": {
+    "file": "187.png",
+    "scale": 2
+  },
+  "188": {
+    "file": "188.png",
+    "scale": 2
+  },
+  "189": {
+    "file": "189.png",
+    "scale": 2
+  },
+  "190": {
+    "file": "190.png",
+    "scale": 2
+  },
+  "191": {
+    "file": "191.png",
+    "scale": 2
+  },
+  "192": {
+    "file": "192.png",
+    "scale": 2
+  },
+  "193": {
+    "file": "193.png",
+    "scale": 2
+  },
+  "194": {
+    "file": "194.png",
+    "scale": 2
+  },
+  "195": {
+    "file": "195.png",
+    "scale": 2
+  },
+  "196": {
+    "file": "196.png",
+    "scale": 2
+  },
+  "197": {
+    "file": "197.png",
+    "scale": 2
+  },
+  "198": {
+    "file": "198.png",
+    "scale": 2
+  },
+  "199": {
+    "file": "199.png",
+    "scale": 2
+  },
+  "200": {
+    "file": "200.png",
+    "scale": 2
+  },
+  "201": {
+    "file": "201.png",
+    "scale": 2
+  },
+  "202": {
+    "file": "202.png",
+    "scale": 2
+  },
+  "203": {
+    "file": "203.png",
+    "scale": 2
+  },
+  "204": {
+    "file": "204.png",
+    "scale": 2
+  },
+  "205": {
+    "file": "205.png",
+    "scale": 2
+  },
+  "206": {
+    "file": "206.png",
+    "scale": 2
+  },
+  "207": {
+    "file": "207.png",
+    "scale": 2
+  },
+  "208": {
+    "file": "208.png",
+    "scale": 2
+  },
+  "209": {
+    "file": "209.png",
+    "scale": 2
+  },
+  "210": {
+    "file": "210.png",
+    "scale": 2
+  },
+  "211": {
+    "file": "211.png",
+    "scale": 2
+  },
+  "212": {
+    "file": "212.png",
+    "scale": 2
+  },
+  "213": {
+    "file": "213.png",
+    "scale": 2
+  },
+  "214": {
+    "file": "214.png",
+    "scale": 2
+  },
+  "215": {
+    "file": "215.png",
+    "scale": 2
+  },
+  "216": {
+    "file": "216.png",
+    "scale": 2
+  },
+  "217": {
+    "file": "217.png",
+    "scale": 2
+  },
+  "218": {
+    "file": "218.png",
+    "scale": 2
+  },
+  "219": {
+    "file": "219.png",
+    "scale": 2
+  },
+  "220": {
+    "file": "220.png",
+    "scale": 2
+  },
+  "221": {
+    "file": "221.png",
+    "scale": 2
+  },
+  "222": {
+    "file": "222.png",
+    "scale": 2
+  },
+  "223": {
+    "file": "223.png",
+    "scale": 2
+  },
+  "224": {
+    "file": "224.png",
+    "scale": 2
+  },
+  "225": {
+    "file": "225.png",
+    "scale": 2
+  },
+  "226": {
+    "file": "226.png",
+    "scale": 2
+  },
+  "227": {
+    "file": "227.png",
+    "scale": 2
+  },
+  "228": {
+    "file": "228.png",
+    "scale": 2
+  },
+  "229": {
+    "file": "229.png",
+    "scale": 2
+  },
+  "319": {
+    "file": "319.png",
+    "scale": 2
+  },
+  "320": {
+    "file": "320.png",
+    "scale": 2
+  },
+  "321": {
+    "file": "321.png",
+    "scale": 2
+  },
+  "322": {
+    "file": "322.png",
+    "scale": 2
+  },
+  "323": {
+    "file": "323.png",
+    "scale": 2
+  },
+  "324": {
+    "file": "324.png",
+    "scale": 2
+  },
+  "325": {
+    "file": "325.png",
+    "scale": 2
+  },
+  "326": {
+    "file": "326.png",
+    "scale": 2
+  },
+  "327": {
+    "file": "327.png",
+    "scale": 2
+  },
+  "328": {
+    "file": "328.png",
+    "scale": 2
+  },
+  "329": {
+    "file": "329.png",
+    "scale": 2
+  },
+  "330": {
+    "file": "330.png",
+    "scale": 2
+  },
+  "331": {
+    "file": "331.png",
+    "scale": 2
+  },
+  "332": {
+    "file": "332.png",
+    "scale": 2
+  },
+  "333": {
+    "file": "333.png",
+    "scale": 2
+  },
+  "334": {
+    "file": "334.png",
+    "scale": 2
+  },
+  "335": {
+    "file": "335.png",
+    "scale": 2
+  },
+  "336": {
+    "file": "336.png",
+    "scale": 2
+  },
+  "337": {
+    "file": "337.png",
+    "scale": 2
+  },
+  "338": {
+    "file": "338.png",
+    "scale": 2
+  },
+  "339": {
+    "file": "339.png",
+    "scale": 2
+  },
+  "340": {
+    "file": "340.png",
+    "scale": 2
+  },
+  "341": {
+    "file": "341.png",
+    "scale": 2
+  },
+  "342": {
+    "file": "342.png",
+    "scale": 2
+  },
+  "343": {
+    "file": "343.png",
+    "scale": 2
+  },
+  "344": {
+    "file": "344.png",
+    "scale": 2
+  },
+  "345": {
+    "file": "345.png",
+    "scale": 2
+  },
+  "346": {
+    "file": "346.png",
+    "scale": 2
+  },
+  "347": {
+    "file": "347.png",
+    "scale": 2
+  },
+  "348": {
+    "file": "348.png",
+    "scale": 2
+  },
+  "388": {
+    "file": "388.png",
+    "scale": 2
+  },
+  "405": {
+    "file": "405.png",
+    "scale": 2
+  },
+  "406": {
+    "file": "406.png",
+    "scale": 2
+  },
+  "407": {
+    "file": "407.png",
+    "scale": 2
+  },
+  "408": {
+    "file": "408.png",
+    "scale": 2
+  },
+  "409": {
+    "file": "409.png",
+    "scale": 2
+  },
+  "410": {
+    "file": "410.png",
+    "scale": 2
+  },
+  "412": {
+    "file": "412.png",
+    "scale": 2
+  },
+  "413": {
+    "file": "413.png",
+    "scale": 2
+  },
+  "414": {
+    "file": "414.png",
+    "scale": 2
+  },
+  "415": {
+    "file": "415.png",
+    "scale": 2
+  },
+  "416": {
+    "file": "416.png",
+    "scale": 2
+  },
+  "417": {
+    "file": "417.png",
+    "scale": 2
+  },
+  "418": {
+    "file": "418.png",
+    "scale": 2
+  },
+  "419": {
+    "file": "419.png",
+    "scale": 2
+  },
+  "420": {
+    "file": "420.png",
+    "scale": 2
+  },
+  "441": {
+    "file": "441.png",
+    "scale": 2
+  },
+  "442": {
+    "file": "442.png",
+    "scale": 2
+  },
+  "443": {
+    "file": "443.png",
+    "scale": 2
+  },
+  "444": {
+    "file": "444.png",
+    "scale": 2
+  },
+  "445": {
+    "file": "445.png",
+    "scale": 2
+  },
+  "446": {
+    "file": "446.png",
+    "scale": 2
+  },
+  "447": {
+    "file": "447.png",
+    "scale": 2
+  },
+  "448": {
+    "file": "448.png",
+    "scale": 2
+  },
+  "449": {
+    "file": "449.png",
+    "scale": 2
+  },
+  "526": {
+    "file": "526.png",
+    "scale": 2
+  },
+  "527": {
+    "file": "527.png",
+    "scale": 2
+  },
+  "528": {
+    "file": "528.png",
+    "scale": 2
+  },
+  "529": {
+    "file": "529.png",
+    "scale": 2
+  },
+  "545": {
+    "file": "545.png",
+    "scale": 2
+  },
+  "546": {
+    "file": "546.png",
+    "scale": 2
+  },
+  "547": {
+    "file": "547.png",
+    "scale": 2
+  },
+  "560": {
+    "file": "560.png",
+    "scale": 2
+  },
+  "561": {
+    "file": "561.png",
+    "scale": 2
+  },
+  "568": {
+    "file": "568.png",
+    "scale": 2
+  },
+  "569": {
+    "file": "569.png",
+    "scale": 2
+  },
+  "570": {
+    "file": "570.png",
+    "scale": 2
+  },
+  "577": {
+    "file": "577.png",
+    "scale": 2
+  },
+  "628": {
+    "file": "628.png",
+    "scale": 2
+  },
+  "655": {
+    "file": "655.png",
+    "scale": 2
+  },
+  "656": {
+    "file": "656.png",
+    "scale": 2
+  },
+  "823": {
+    "file": "823.png",
+    "scale": 2
+  },
+  "824": {
+    "file": "824.png",
+    "scale": 2
+  }
+}
