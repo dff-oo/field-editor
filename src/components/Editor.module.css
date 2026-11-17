@@ -277,7 +277,12 @@ button.chip {
 .tintCutscene { fill: rgb(224 64 251 / 0.3); }
 .tintBattle { fill: rgb(255 23 68 / 0.28); }
 .tintTreasure { fill: rgb(255 214 0 / 0.32); }
-.tintMove { fill: rgb(24 255 255 / 0.18); }
+.tintMove {
+  fill: rgb(24 255 255 / 0.32);
+  stroke: #18ffff;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
 .tintPortal { fill: rgb(170 140 255 / 0.3); }
 
 .swatch {
@@ -287,7 +292,7 @@ button.chip {
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
 }
 
-.swatchMove { background: rgb(24 255 255 / 0.45); }
+.swatchMove { background: #18ffff; }
 .swatchReveals { background: #69f0ae; }
 .swatchRevealer { background: #ffab40; }
 
