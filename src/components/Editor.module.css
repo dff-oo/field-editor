@@ -264,10 +264,6 @@ button.chip {
   cursor: pointer;
 }
 
-.hex:hover {
-  fill: rgb(255 255 255 / 0.14);
-}
-
 .gridFrame,
 .eventFrame {
   pointer-events: none;
@@ -275,6 +271,24 @@ button.chip {
 
 .gridFrame {
   opacity: 0.7;
+}
+
+/* Kind tints are data, not theme: faint so the game's frames stay the main signal. */
+.tintCutscene { fill: rgb(224 64 251 / 0.3); }
+.tintBattle { fill: rgb(255 23 68 / 0.28); }
+.tintTreasure { fill: rgb(255 214 0 / 0.32); }
+.tintMove { fill: rgb(24 255 255 / 0.22); }
+.tintPortal { fill: rgb(170 140 255 / 0.3); }
+.movePath {
+  fill: none;
+  stroke: #18ffff;
+  stroke-width: 4;
+  stroke-dasharray: 2 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+  pointer-events: none;
 }
 
 .reveal {
@@ -311,6 +325,7 @@ button.chip {
 .map svg .outline {
   fill: none;
   pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .map svg .sameSite {
@@ -319,10 +334,26 @@ button.chip {
   stroke-dasharray: 6 4;
 }
 
-.map svg .selected {
-  stroke: var(--omnia-focus);
-  stroke-width: 5;
-  stroke-dasharray: none;
+.map svg .hover {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+}
+
+.readout {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--omnia-space-2));
+  max-width: min(420px, 70vw);
+  overflow: hidden;
+  padding: var(--omnia-space-1) var(--omnia-space-3);
+  border: 1px solid var(--omnia-border);
+  border-radius: var(--omnia-radius-xs);
+  background: color-mix(in oklab, var(--omnia-canvas) 88%, transparent);
+  font-size: var(--omnia-text-small);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
 .map svg .cursor {

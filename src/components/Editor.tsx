@@ -51,6 +51,14 @@ const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
+const MOVE_STAR_SIZE = 72;
+
+const KIND_TINT: Record<FieldSiteFile['kind'], string> = {
+  cutscene: styles.tintCutscene,
+  battle: styles.tintBattle,
+  treasure: styles.tintTreasure,
+  move: styles.tintMove,
+};
 const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
 /** The game's hex frames are scaled so their line box covers one cell exactly. */
@@ -101,6 +109,12 @@ function shorten(from: { cx: number; cy: number }, to: { cx: number; cy: number 
 
 function siteHex(site: FieldSiteFile): HexAt {
   return site.kind === 'move' ? site.hexes[0] : site.hex;
+}
+
+/** What the hover readout says about a hex. */
+function hoverText(file: FieldFile, at: HexAt, talks: Resources['talks']): string {
+  if (file.portal && file.portal.hex[0] === at[0] && file.portal.hex[1] === at[1]) return `Quest ${file.portal.quest_id} · Portal`;
+  return hexTip(file, at, talks) ?? 'Empty';
 }
 
 function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string | null {
@@ -184,6 +198,7 @@ export function Editor() {
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
   const [at, setAt] = useState<HexAt | null>(null);
   const [cursor, setCursor] = useState<HexAt | null>(null);
+  const [hover, setHover] = useState<HexAt | null>(null);
   const [cursorNote, setCursorNote] = useState('');
   const [showImage, setShowImage] = useState(true);
   const [hideArrows, setHideArrows] = useState(false);
@@ -685,6 +700,38 @@ export function Editor() {
                   style={{ pointerEvents: 'none' }}
                 />
               )}
+              {Array.from({ length: columns * rows }, (_, index) => {
+                const x = index % columns;
+                const y = Math.floor(index / columns);
+                if (image && !onMap(x, y, image)) return null;
+                const occupied = siteAt(file, [x, y]);
+                const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
+                const tint = occupied >= 0 ? KIND_TINT[file.sites[occupied].kind] : portalHere ? styles.tintPortal : undefined;
+                const tip = occupied >= 0
+                  ? hexTip(file, [x, y], resources.talks)
+                  : portalHere
+                    ? `Quest ${file.portal?.quest_id} · Portal`
+                    : null;
+                return (
+                  <polygon
+                    key={`${x}-${y}`}
+                    points={hexOutline(x, y)}
+                    className={hexClass(tint)}
+                    onPointerEnter={() => setHover([x, y])}
+                    onPointerLeave={() => setHover((current) => (current && current[0] === x && current[1] === y ? null : current))}
+                    onClick={() => {
+                      if (dragged.current) {
+                        dragged.current = false;
+                        return;
+                      }
+                      setAt([x, y]);
+                      setCursor([x, y]);
+                    }}
+                  >
+                    {tip && <title>{tip}</title>}
+                  </polygon>
+                );
+              })}
               {[false, true].flatMap((eventPass) => Array.from({ length: columns * rows }, (_, index) => {
                 const x = index % columns;
                 const y = Math.floor(index / columns);
@@ -707,35 +754,20 @@ export function Editor() {
                   />
                 );
               }))}
-              {Array.from({ length: columns * rows }, (_, index) => {
-                const x = index % columns;
-                const y = Math.floor(index / columns);
-                if (image && !onMap(x, y, image)) return null;
-                const occupied = siteAt(file, [x, y]);
-                const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
-                const tip = occupied >= 0
-                  ? hexTip(file, [x, y], resources.talks)
-                  : portalHere
-                    ? `Quest ${file.portal?.quest_id} · Portal`
-                    : null;
+              {at && (() => {
+                const { cx, cy } = hexPixel(at[0], at[1]);
                 return (
-                  <polygon
-                    key={`${x}-${y}`}
-                    points={hexOutline(x, y)}
-                    className={hexClass()}
-                    onClick={() => {
-                      if (dragged.current) {
-                        dragged.current = false;
-                        return;
-                      }
-                      setAt([x, y]);
-                      setCursor([x, y]);
-                    }}
-                  >
-                    {tip && <title>{tip}</title>}
-                  </polygon>
+                  <image
+                    href={gameIconSrc('hex-selected')}
+                    x={cx - FRAME_CENTRE_X}
+                    y={cy - FRAME_CENTRE_Y}
+                    width={FRAME_WIDTH}
+                    height={FRAME_HEIGHT}
+                    preserveAspectRatio="none"
+                    className={styles.eventFrame}
+                  />
                 );
-              })}
+              })()}
               {file.portal && (() => {
                 const { cx, cy } = hexPixel(file.portal.hex[0], file.portal.hex[1]);
                 return (
@@ -754,6 +786,29 @@ export function Editor() {
               {arrows.map(({ index, x1, y1, x2, y2 }) => (
                 <line key={`reveal-${index}`} className={styles.reveal} markerEnd="url(#reveal-arrow)" x1={x1} y1={y1} x2={x2} y2={y2} />
               ))}
+              {file.sites.flatMap((site, index) => {
+                if (site.kind !== 'move' || site.hexes.length === 0) return [];
+                const points = site.hexes.map((hex) => hexPixel(hex[0], hex[1]));
+                const first = points[0];
+                return [
+                  points.length > 1 && (
+                    <polyline
+                      key={`path-${index}`}
+                      points={points.map(({ cx, cy }) => `${cx},${cy}`).join(' ')}
+                      className={styles.movePath}
+                    />
+                  ),
+                  <image
+                    key={`move-${index}`}
+                    href={gameIconSrc('move')}
+                    x={first.cx - MOVE_STAR_SIZE / 2}
+                    y={first.cy - MOVE_STAR_SIZE / 2}
+                    width={MOVE_STAR_SIZE}
+                    height={MOVE_STAR_SIZE}
+                    className={styles.sprite}
+                  />,
+                ];
+              })}
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'move' || site.hexes.length < 2) return [];
                 return site.hexes.map((hex, step) => {
@@ -807,8 +862,8 @@ export function Editor() {
                   .map(({ hex: [x, y] }) => (
                     <polygon key={`outline-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.sameSite)} />
                   ))}
-              {at && <polygon points={hexOutline(at[0], at[1])} className={hexClass(styles.outline, styles.selected)} />}
               {cursor && <polygon points={hexOutline(cursor[0], cursor[1])} className={hexClass(styles.outline, styles.cursor)} />}
+              {hover && <polygon points={hexOutline(hover[0], hover[1])} className={hexClass(styles.outline, styles.hover)} />}
             </svg>
           </div>
           <div className={styles.legend}>
@@ -829,6 +884,11 @@ export function Editor() {
             )}
           </div>
           <div className={styles.mapControls}>
+            {hover && (
+              <div className={styles.readout} aria-hidden="true">
+                <b>Hex {hover[0]}, {hover[1]}</b> {hoverText(file, hover, resources.talks)}
+              </div>
+            )}
             <Tooltip content={hideArrows ? 'Show reveal arrows' : 'Hide reveal arrows'}>
               <IconButton
                 size="sm"
