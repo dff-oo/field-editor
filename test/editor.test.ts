@@ -79,6 +79,13 @@ describe('example map', () => {
     const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
     expect(problems.map((problem) => problem.message)).toContain(`quest ${start.quest_id} is both the start and the goal; a site can only be one`);
   });
+
+  it('reports a revealed hex that touches nothing already showing', () => {
+    const data = JSON.parse(readFileSync(join(root, 'examples', 'field-001.json'), 'utf8')) as { field: number; sites: { quest_id?: number; hex?: [number, number] }[] };
+    data.sites.find((site) => site.quest_id === 305)!.hex = [2, 2];
+    const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain('clearing quest 304 reveals quests 305, which touch no hex already showing');
+  });
 });
 
 describe('field links', () => {

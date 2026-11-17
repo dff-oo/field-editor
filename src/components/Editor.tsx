@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowsIcon,
   Button,
   CrystalIcon,
   EmptyState,
@@ -45,13 +44,11 @@ const COLS = 20;
 const ROWS = 18;
 const HISTORY = 100;
 const MERGE_MS = 500;
-const ARROW_GAP = 52;
 const LEGEND_KEY = 'field-editor.legend';
 const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
-const MOVE_BADGE_RADIUS = 30;
 
 const KIND_TINT: Record<FieldSiteFile['kind'], string> = {
   cutscene: styles.tintCutscene,
@@ -95,26 +92,27 @@ interface Box {
 
 const hexClass = (...names: (string | false | undefined)[]) => [styles.hex, ...names].filter(Boolean).join(' ');
 
-/** Pull a line back from both hex centres, keeping a visible stub between neighbours. */
-function shorten(from: { cx: number; cy: number }, to: { cx: number; cy: number }, gap: number) {
-  const dx = to.cx - from.cx;
-  const dy = to.cy - from.cy;
-  const len = Math.hypot(dx, dy);
-  const pull = Math.min(gap, (len - 16) / 2);
-  if (pull <= 0) return null;
-  const ux = dx / len;
-  const uy = dy / len;
-  return { x1: from.cx + ux * pull, y1: from.cy + uy * pull, x2: to.cx - ux * pull, y2: to.cy - uy * pull };
-}
+const sameHex = (a: HexAt, b: HexAt) => a[0] === b[0] && a[1] === b[1];
 
-function siteHex(site: FieldSiteFile): HexAt {
-  return site.kind === 'move' ? site.hexes[0] : site.hex;
+/** The hexes that appear together when the quest at `at` is cleared, and the hex whose clear made `at` appear. */
+function revealLinks(file: FieldFile, at: HexAt | null): { reveals: HexAt[]; revealer: HexAt | null } {
+  if (!at) return { reveals: [], revealer: null };
+  const rows = questHexes(file).filter((row) => row.site >= 0);
+  const here = rows.find((row) => sameHex(row.hex, at));
+  if (!here) return { reveals: [], revealer: null };
+  const reveals = rows.filter((row) => file.sites[row.site].revealed_by === here.questId).map((row) => row.hex);
+  const revealedBy = file.sites[here.site].revealed_by;
+  const revealer = revealedBy === null ? null : rows.find((row) => row.questId === revealedBy)?.hex ?? null;
+  return { reveals, revealer };
 }
 
 /** What the hover readout says about a hex. */
 function hoverText(file: FieldFile, at: HexAt, talks: Resources['talks']): string {
   if (file.portal && file.portal.hex[0] === at[0] && file.portal.hex[1] === at[1]) return `Quest ${file.portal.quest_id} · Portal`;
-  return hexTip(file, at, talks) ?? 'Empty';
+  const tip = hexTip(file, at, talks);
+  if (!tip) return 'Empty';
+  const { reveals } = revealLinks(file, at);
+  return reveals.length > 0 ? `${tip} · reveals ${reveals.length} ${reveals.length === 1 ? 'hex' : 'hexes'}` : tip;
 }
 
 function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string | null {
@@ -123,8 +121,8 @@ function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string |
   const site = file.sites[index];
   const label = siteLabel(file, index, talks);
   if (site.kind === 'move') {
-    const step = site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1]);
-    return `Quest ${site.first_quest_id + step} · ${label}, step ${step + 1} of ${site.hexes.length}`;
+    const offset = site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1]);
+    return `Quest ${site.first_quest_id + offset} · ${label}`;
   }
   return `Quest ${site.quest_id} · ${label}`;
 }
@@ -201,7 +199,6 @@ export function Editor() {
   const [hover, setHover] = useState<HexAt | null>(null);
   const [cursorNote, setCursorNote] = useState('');
   const [showImage, setShowImage] = useState(true);
-  const [hideArrows, setHideArrows] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
   const [narrow, setNarrow] = useState(false);
   const [past, setPast] = useState<FieldFile[]>([]);
@@ -607,17 +604,7 @@ export function Editor() {
   const shown = camera ?? fitCamera(file, image, aspect);
   const viewHeight = shown.width * aspect;
   const selectedSite = at ? siteAt(file, at) : -1;
-  const byQuest = new Map(questHexes(file).map((row) => [row.questId, row.hex]));
-  const arrows = hideArrows
-    ? []
-    : file.sites.flatMap((site, index) => {
-        if (site.revealed_by === null) return [];
-        const fromHex = byQuest.get(site.revealed_by);
-        if (!fromHex) return [];
-        const to = siteHex(site);
-        const line = shorten(hexPixel(fromHex[0], fromHex[1]), hexPixel(to[0], to[1]), ARROW_GAP);
-        return line ? [{ index, ...line }] : [];
-      });
+  const links = revealLinks(file, hover ?? at);
 
   return (
     <div className={styles.app}>
@@ -684,14 +671,6 @@ export function Editor() {
                 moveCursor(step, columns, rows);
               }}
             >
-              <defs>
-                <marker id="reveal-arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="36" markerHeight="36" orient="auto">
-                  <path d="M 0 0 L 10 5 L 0 10 z" className={styles.revealHead} />
-                </marker>
-                <marker id="move-arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="30" markerHeight="30" orient="auto">
-                  <path d="M 0 0 L 10 5 L 0 10 z" className={styles.moveHead} />
-                </marker>
-              </defs>
               {fieldMap && image && showImage && (
                 <image
                   href={fieldMap.url}
@@ -786,33 +765,6 @@ export function Editor() {
                   </image>
                 );
               })()}
-              {arrows.map(({ index, x1, y1, x2, y2 }) => (
-                <line key={`reveal-${index}`} className={styles.reveal} markerEnd="url(#reveal-arrow)" x1={x1} y1={y1} x2={x2} y2={y2} />
-              ))}
-              {file.sites.flatMap((site, index) => {
-                if (site.kind !== 'move' || site.hexes.length === 0) return [];
-                const points = site.hexes.map((hex) => hexPixel(hex[0], hex[1]));
-                return points.slice(1).map((to, step) => {
-                  const segment = shorten(points[step], to, MOVE_BADGE_RADIUS + 6);
-                  return segment && (
-                    <line key={`path-${index}-${step}`} className={styles.movePath} markerEnd="url(#move-arrow)" {...segment} />
-                  );
-                });
-              })}
-              {file.sites.flatMap((site, index) => {
-                if (site.kind !== 'move') return [];
-                return site.hexes.map((hex, step) => {
-                  const { cx, cy } = hexPixel(hex[0], hex[1]);
-                  return (
-                    <g key={`step-${index}-${step}`} className={styles.moveBadge}>
-                      <circle cx={cx} cy={cy} r={MOVE_BADGE_RADIUS} />
-                      <text x={cx} y={cy} className={styles.step}>
-                        {step + 1}
-                      </text>
-                    </g>
-                  );
-                });
-              })}
               {file.sites.map((site, index) => {
                 const icon = siteIcon(site);
                 if (!icon || site.kind === 'move') return null;
@@ -855,6 +807,12 @@ export function Editor() {
                   .map(({ hex: [x, y] }) => (
                     <polygon key={`outline-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.sameSite)} />
                   ))}
+              {links.reveals.map(([x, y]) => (
+                <polygon key={`reveals-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.reveals)} />
+              ))}
+              {links.revealer && (
+                <polygon points={hexOutline(links.revealer[0], links.revealer[1])} className={hexClass(styles.outline, styles.revealer)} />
+              )}
               {cursor && <polygon points={hexOutline(cursor[0], cursor[1])} className={hexClass(styles.outline, styles.cursor)} />}
               {hover && <polygon points={hexOutline(hover[0], hover[1])} className={hexClass(styles.outline, styles.hover)} />}
             </svg>
@@ -867,12 +825,14 @@ export function Editor() {
               <div className={styles.legendBody} aria-label="Map legend">
                 {LEGEND.map(({ icon, label }) => (
                   <span key={icon}>
-                    {icon === 'move' ? <span className={styles.legendStep} aria-hidden="true">1</span> : <GameIcon name={icon} size={20} />}
+                    {icon === 'move' ? <span className={`${styles.swatch} ${styles.swatchMove}`} aria-hidden="true" /> : <GameIcon name={icon} size={20} />}
                     {label}
                   </span>
                 ))}
                 <span><GameIcon name="start" size={20} /> Start</span>
                 <span><GameIcon name="goal" size={20} /> Goal</span>
+                <span><span className={`${styles.swatch} ${styles.swatchReveals}`} aria-hidden="true" /> Revealed when cleared</span>
+                <span><span className={`${styles.swatch} ${styles.swatchRevealer}`} aria-hidden="true" /> Cleared to reveal it</span>
               </div>
             )}
           </div>
@@ -882,16 +842,6 @@ export function Editor() {
                 <b>Hex {hover[0]}, {hover[1]}</b> {hoverText(file, hover, resources.talks)}
               </div>
             )}
-            <Tooltip content={hideArrows ? 'Show reveal arrows' : 'Hide reveal arrows'}>
-              <IconButton
-                size="sm"
-                label={hideArrows ? 'Show reveal arrows' : 'Hide reveal arrows'}
-                aria-pressed={!hideArrows}
-                icon={<ArrowsIcon size={16} />}
-                variant={!hideArrows ? 'secondary' : 'ghost'}
-                onClick={() => setHideArrows((hidden) => !hidden)}
-              />
-            </Tooltip>
             {fieldMap && (
               <Tooltip content={showImage ? 'Hide field image' : 'Show field image'}>
                 <IconButton

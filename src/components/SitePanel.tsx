@@ -103,8 +103,8 @@ export function SitePanel(props: {
     : [site.quest_id];
   const revealOptions = quests.filter((option) => !ownIds.includes(Number(option.value)));
 
-  const step = site.kind === 'move' ? Math.max(0, site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1])) : 0;
-  const questId = site.kind === 'move' ? site.first_quest_id + step : site.quest_id;
+  const offset = site.kind === 'move' ? Math.max(0, site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1])) : 0;
+  const questId = site.kind === 'move' ? site.first_quest_id + offset : site.quest_id;
 
   return (
     <div className={styles.panel}>
@@ -114,7 +114,7 @@ export function SitePanel(props: {
             <h2 className={styles.heading}>{siteLabel(file, index, resources.talks)}</h2>
             <p className={styles.meta}>
               Hex {at[0]}, {at[1]} · quest {questId}
-              {site.kind === 'move' ? `, step ${step + 1} of ${site.hexes.length}` : ''}
+              {site.kind === 'move' ? `, one of ${site.hexes.length} revealed together` : ''}
             </p>
           </div>
           <IconButton label="Close inspector" icon={<CloseIcon size={16} />} onClick={props.onClose} />

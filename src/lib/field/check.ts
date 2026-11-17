@@ -1,4 +1,4 @@
-import { adjacent, stranded } from './hex';
+import { stranded } from './hex';
 import { compileFieldFile, type CompiledFile } from './compile';
 import { fieldFileSchema, type MissionFile, type RewardFile, type FieldFile } from './schema';
 
@@ -162,15 +162,19 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
     if (lost.length) {
       problems.push({ file, message: `quests not connected to the start: ${lost.join(', ')}` });
     }
-    for (let index = 0; index < sites.length; index += 1) {
-      const site = sites[index];
-      if (site.kind === 'move' || site.revealedBy === null) continue;
-      const earlier = sites.slice(0, index);
-      const touch = earlier.some((other) => adjacent({ x: other.hexX, y: other.hexY }, { x: site.hexX, y: site.hexY }));
-      if (!touch) {
+    const byId = new Map(sites.map((site) => [site.questId, site]));
+    for (const revealer of sites) {
+      if (!sites.some((site) => site.revealedBy === revealer.questId)) continue;
+      // Only hexes on the revealer's own chain are sure to be showing; other branches depend on play order.
+      const chain = new Set<number>();
+      for (let id: number | null = revealer.questId; id !== null && !chain.has(id); id = byId.get(id)?.revealedBy ?? null) chain.add(id);
+      const visible = sites.filter((site) => site.revealedBy === null || chain.has(site.revealedBy));
+      const lost = stranded(visible.map((site) => ({ id: site.questId, x: site.hexX, y: site.hexY })), starts[0].questId)
+        .filter((id) => byId.get(id)?.revealedBy === revealer.questId);
+      if (lost.length) {
         problems.push({
           file,
-          message: `quest ${site.questId} is not adjacent to any earlier site, so the path breaks when it appears`,
+          message: `clearing quest ${revealer.questId} reveals quests ${lost.join(', ')}, which touch no hex already showing`,
         });
       }
     }

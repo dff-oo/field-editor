@@ -277,72 +277,19 @@ button.chip {
 .tintCutscene { fill: rgb(224 64 251 / 0.3); }
 .tintBattle { fill: rgb(255 23 68 / 0.28); }
 .tintTreasure { fill: rgb(255 214 0 / 0.32); }
-.tintMove {
-  fill: rgb(24 255 255 / 0.32);
-  stroke: #18ffff;
-  stroke-width: 3;
-  vector-effect: non-scaling-stroke;
-}
+.tintMove { fill: rgb(24 255 255 / 0.18); }
 .tintPortal { fill: rgb(170 140 255 / 0.3); }
-.movePath {
-  stroke: #18ffff;
-  stroke-width: 12;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.9));
-  pointer-events: none;
-}
 
-.moveHead {
-  fill: #18ffff;
-}
-
-.moveBadge {
-  pointer-events: none;
-}
-
-.legendStep {
-  display: inline-grid;
-  place-items: center;
+.swatch {
+  display: inline-block;
   width: 20px;
-  height: 20px;
-  border: 2px solid #18ffff;
-  border-radius: 50%;
-  background: #042428;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 900;
+  height: 16px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
 }
 
-.moveBadge circle {
-  fill: #042428;
-  stroke: #18ffff;
-  stroke-width: 6;
-  filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.9));
-}
-
-.reveal {
-  fill: none;
-  stroke: #ffffff;
-  stroke-opacity: 0.75;
-  stroke-width: 3;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 1px #000000);
-  pointer-events: none;
-}
-
-.revealHead {
-  fill: #ffffff;
-  fill-opacity: 0.85;
-}
-
-.step {
-  text-anchor: middle;
-  dominant-baseline: central;
-  paint-order: stroke;
-  pointer-events: none;
-  font: 900 38px var(--omnia-font-sans);
-  fill: #ffffff;
-}
+.swatchMove { background: rgb(24 255 255 / 0.45); }
+.swatchReveals { background: #69f0ae; }
+.swatchRevealer { background: #ffab40; }
 
 .sprite {
   pointer-events: none;
@@ -359,6 +306,19 @@ button.chip {
   stroke: #ffffff;
   stroke-width: 3;
   stroke-dasharray: 6 4;
+}
+
+.map svg .reveals {
+  stroke: #69f0ae;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+}
+
+.map svg .revealer {
+  stroke: #ffab40;
+  stroke-width: 3.5;
+  stroke-dasharray: 8 5;
+  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
 }
 
 .map svg .hover {
