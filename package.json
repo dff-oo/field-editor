@@ -2,16 +2,16 @@
   "name": "@dffoogg/field-editor",
   "private": true,
   "scripts": {
-    "predev": "tsx scripts/export-schema.ts && tsx scripts/copy-character-images.ts",
+    "predev": "tsx scripts/export-schema.ts",
     "dev": "next dev",
-    "prebuild": "tsx scripts/export-schema.ts && tsx scripts/copy-character-images.ts",
+    "prebuild": "tsx scripts/export-schema.ts",
     "build": "next build",
     "test": "vitest run",
     "field-maps": "tsx scripts/export-field-maps.ts"
   },
   "dependencies": {
-    "@dffoogg/omnia-ui": "github:dffoogg/omnia-ui#b9c58a6",
-    "@dffoogg/resources": "github:dffoogg/resources#948eaab",
+    "@dffoogg/omnia-ui": "github:dffoogg/omnia-ui#de49b68",
+    "@dffoogg/resources": "github:dffoogg/resources#2793b39",
     "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

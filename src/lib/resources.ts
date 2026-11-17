@@ -12,7 +12,7 @@ export interface Stage extends Named {
 }
 
 export interface Character extends Named {
-  /** Names the head image, public/characters/<image_id>.png. */
+  /** Names the head image, characters/<image_id>.png in the CDN. */
   image_id?: number;
 }
 

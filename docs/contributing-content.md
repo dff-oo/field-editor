@@ -27,7 +27,7 @@ Click a hex, then choose what is on it: cutscene, battle, treasure or move. An o
 
 The download writes the canonical layout, so a diff is only the change you made.
 
-The field's painting is `public/field-maps/NNN.png`, committed in this repo. It is placed by its size in hexes, measured in the client on Chapter 1: the square texture spans 20.83 columns and 21.17 rows, and hex (1, 1) sits 2.77 columns in from its left edge and 5.39 rows down from its top. Even columns sit half a row south. Fields with a different horizontal display scale are sized in proportion; only Chapter 1 has been checked in the client. A maintainer rebuilds the paintings with `npm run field-maps` when the client archive is on disk. See the [README](../README.md).
+The field's painting is `maps/NNN.png` in the [CDN](https://github.com/dffoogg/cdn). It is placed by its size in hexes, measured in the client on Chapter 1: the square texture spans 20.83 columns and 21.17 rows, and hex (1, 1) sits 2.77 columns in from its left edge and 5.39 rows down from its top. Even columns sit half a row south. Fields with a different horizontal display scale are sized in proportion; only Chapter 1 has been checked in the client. A maintainer rebuilds the paintings with `npm run field-maps` when the client archive is on disk. See the [README](../README.md).
 
 ## What a file contains
 

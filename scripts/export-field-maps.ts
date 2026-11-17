@@ -157,6 +157,11 @@ function archiveRoot(): string {
   return resolve(process.env.DFFOO_GAME_DIR ?? resolve(repoRoot(), '..', 'dffoogg-game'), 'archive');
 }
 
+/** The dffoogg/cdn checkout next to this repo, which serves the paintings. DFFOO_CDN_DIR overrides it. */
+function cdnRoot(): string {
+  return process.env.DFFOO_CDN_DIR ?? resolve(repoRoot(), '..', 'dffoogg-cdn');
+}
+
 /** The oo_tool package: DFFOO_UNPACKER, otherwise the devDependency in node_modules. */
 function unpackerRoot(): string {
   return process.env.DFFOO_UNPACKER ?? resolve(repoRoot(), 'node_modules', 'oo_tool');
@@ -209,7 +214,7 @@ function exportFieldMaps(): void {
   const master = loadMaster();
   const assets = indexAssets();
   const root = repoRoot();
-  const outDir = join(root, 'public', 'field-maps');
+  const outDir = join(cdnRoot(), 'maps');
   mkdirSync(outDir, { recursive: true });
   const manifest: Record<string, { file: string; scale: number }> = {};
   const ids = Object.keys(master)

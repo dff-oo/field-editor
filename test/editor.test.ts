@@ -11,6 +11,7 @@ import stages from '@dffoogg/resources/stages.json';
 import talks from '@dffoogg/resources/talks.json';
 import { decodeEtc1 } from '../scripts/export-field-maps';
 import { fieldFileName } from '../src/lib/edit';
+import { cdnSrc } from '../src/lib/cdn';
 import { fieldMapFor } from '../src/lib/field-map';
 import fieldMaps from '../src/lib/field-maps.json';
 import { withStageNames, type Stage } from '../src/lib/resources';
@@ -119,12 +120,13 @@ describe('field links', () => {
 });
 
 describe('field maps', () => {
-  it('points every manifest entry at a committed PNG', () => {
+  it('points every manifest entry at a CDN map, and at a file when the CDN is checked out', () => {
     const entries = Object.entries(fieldMaps as Record<string, { file: string; scale: number }>);
     expect(entries.length).toBeGreaterThan(0);
+    const cdn = join(root, '..', 'dffoogg-cdn', 'maps');
     for (const [id, entry] of entries) {
-      expect(existsSync(join(root, 'public', 'field-maps', entry.file)), `field ${id}`).toBe(true);
-      expect(fieldMapFor(Number(id))).toEqual({ url: `/field-maps/${entry.file}`, scale: entry.scale });
+      if (existsSync(cdn)) expect(existsSync(join(cdn, entry.file)), `field ${id}`).toBe(true);
+      expect(fieldMapFor(Number(id))).toEqual({ url: cdnSrc(`maps/${entry.file}`), scale: entry.scale });
     }
   });
 });

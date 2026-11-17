@@ -17,9 +17,9 @@ Open the page Next prints (port 3000). **New** starts an empty map, **Load** ope
 
 See [docs/contributing-content.md](docs/contributing-content.md) for how a file is put together.
 
-## Field paintings
+## Game images
 
-The paintings are PNGs in [public/field-maps](public/field-maps), with their display scales in [src/lib/field-maps.json](src/lib/field-maps.json). The hosted site serves them as static files.
+Every image extracted from the client is loaded from [dffoogg/cdn](https://github.com/dffoogg/cdn), served at <https://dffoogg.github.io/cdn>; `NEXT_PUBLIC_DFFOO_CDN` points at another copy. The field paintings are `maps/NNN.png` there, with their display scales in [src/lib/field-maps.json](src/lib/field-maps.json). The heads on joining cutscenes are `characters/<image_id>.png`, using each character's `image_id` from `@dffoogg/resources`. The map markers and hex frames come through Omnia's `GameIcon`, from `icons/`.
 
 To rebuild them, a maintainer with the global client archive runs:
 
@@ -27,4 +27,4 @@ To rebuild them, a maintainer with the global client archive runs:
 npm run field-maps
 ```
 
-The archive is read from the [game](https://github.com/dffoogg/game) repo, checked out next to this one as `../dffoogg-game` (`DFFOO_GAME_DIR` overrides that). Textures are unpacked with [oo_tool](https://www.npmjs.com/package/oo_tool), a pinned devDependency; `DFFOO_UNPACKER` points at another copy of it. The script unpacks each FieldMap texture, decodes it, and writes `public/field-maps/NNN.png`. A texture that is not ETC1 is skipped and named in the script's output.
+The archive is read from the [game](https://github.com/dffoogg/game) repo, checked out next to this one as `../dffoogg-game` (`DFFOO_GAME_DIR` overrides that). Textures are unpacked with [oo_tool](https://www.npmjs.com/package/oo_tool), a pinned devDependency; `DFFOO_UNPACKER` points at another copy of it. The script unpacks each FieldMap texture, decodes it, and writes `maps/NNN.png` into the CDN repo, checked out next to this one as `../dffoogg-cdn` (`DFFOO_CDN_DIR` overrides that). Commit and push the CDN afterwards. A texture that is not ETC1 is skipped and named in the script's output.

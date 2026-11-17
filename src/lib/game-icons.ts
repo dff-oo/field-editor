@@ -1,4 +1,5 @@
 import type { GameIconName } from '@dffoogg/omnia-ui';
+import { cdnSrc } from '@/lib/cdn';
 import type { Kind } from '@/lib/edit';
 import type { FieldSiteFile } from '@/lib/field/schema';
 
@@ -14,9 +15,9 @@ export function battleHelmet(site: { strong_enemy?: boolean; side_quest?: boolea
   return 'helmet-silver';
 }
 
-/** URL of a character's head, copied from @dffoogg/resources by scripts/copy-character-images.ts. */
+/** URL of a character's head in the CDN. `imageId` is the character's `image_id` in @dffoogg/resources. */
 export function characterImageSrc(imageId: number): string {
-  return `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/characters/${imageId}.png`;
+  return cdnSrc(`characters/${imageId}.png`);
 }
 
 /** The sprite drawn on a site's hex. Move strips span several hexes and keep their step numbers instead. */
