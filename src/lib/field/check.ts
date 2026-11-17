@@ -84,6 +84,9 @@ export function checkFields(
       if (site.kind === 'cutscene' && site.joins && !site.chara_icon) {
         problems.push({ file: file.name, message: `cutscene ${site.quest_id} joins nobody: the character on its icon joins, and it has no icon` });
       }
+      if ((site.kind === 'cutscene' || site.kind === 'battle') && site.revealed_by === null && site.goal) {
+        problems.push({ file: file.name, message: `quest ${site.quest_id} is both the start and the goal; a site can only be one` });
+      }
       if (site.kind === 'battle' && site.strong_enemy && site.side_quest) {
         problems.push({ file: file.name, message: `quest ${site.quest_id} is both a strong enemy and a side quest; a battle can only be one` });
       }

@@ -71,6 +71,14 @@ describe('example map', () => {
     const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
     expect(problems.map((problem) => problem.message)).toContain(`quest ${battle.quest_id} is both a strong enemy and a side quest; a battle can only be one`);
   });
+
+  it('reports a site that is both the start and the goal', () => {
+    const data = JSON.parse(readFileSync(join(root, 'examples', 'field-001.json'), 'utf8')) as { field: number; sites: { quest_id: number; revealed_by?: number | null; goal?: true }[] };
+    const start = data.sites.find((site) => site.revealed_by === null)!;
+    start.goal = true;
+    const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain(`quest ${start.quest_id} is both the start and the goal; a site can only be one`);
+  });
 });
 
 describe('field links', () => {

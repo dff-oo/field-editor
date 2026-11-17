@@ -176,12 +176,16 @@ export function SitePanel(props: {
             label="Start"
             checked={site.revealed_by === null}
             disabled={site.revealed_by === null && defaultReveal(file, at) === null}
-            onCheckedChange={(checked) => put({ ...site, revealed_by: checked ? null : defaultReveal(file, at) })}
+            onCheckedChange={(checked) => put(checked ? { ...site, revealed_by: null, goal: undefined } : { ...site, revealed_by: defaultReveal(file, at) })}
           />
           <Checkbox
             label="Goal"
+            title="The start can't also be the goal."
             checked={site.goal === true}
-            onCheckedChange={(checked) => put({ ...site, goal: checked ? true : undefined })}
+            disabled={site.revealed_by === null && defaultReveal(file, at) === null}
+            onCheckedChange={(checked) => put(checked
+              ? { ...site, goal: true, revealed_by: site.revealed_by === null ? defaultReveal(file, at) : site.revealed_by }
+              : { ...site, goal: undefined })}
           />
         </div>
       )}

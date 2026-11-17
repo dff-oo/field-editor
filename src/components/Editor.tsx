@@ -51,7 +51,9 @@ const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
 const BADGE_SIZE = 50;
-const BADGE_OFFSET_X = 46;
+const BADGE_INSET = 4;
+/** Centre to the left or right corner of a hex, which sits on its middle line. */
+const HEX_HALF_WIDTH = (HEX_STEP_X * 2) / 3;
 
 const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'cutscene', label: 'Cutscene' },
@@ -753,20 +755,22 @@ export function Editor() {
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'cutscene' && site.kind !== 'battle') return [];
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
-                const badges = [site.revealed_by === null && 'start', site.goal && 'goal'].filter((badge) => badge) as ('start' | 'goal')[];
-                return badges.map((badge, n) => (
+                const badge = site.revealed_by === null ? 'start' : site.goal ? 'goal' : null;
+                if (!badge) return [];
+                return [
                   <image
                     key={`${badge}-${index}`}
                     href={gameIconSrc(badge)}
-                    x={cx + BADGE_OFFSET_X - BADGE_SIZE / 2}
-                    y={cy + (badges.length > 1 ? (n ? 1 : -1) * BADGE_SIZE / 2 : 0) - BADGE_SIZE / 2}
+                    x={cx + HEX_HALF_WIDTH - BADGE_INSET - BADGE_SIZE}
+                    y={cy - BADGE_SIZE / 2}
                     width={BADGE_SIZE}
                     height={BADGE_SIZE}
+                    preserveAspectRatio="xMaxYMid meet"
                     className={styles.sprite}
                   >
                     <title>{badge === 'start' ? 'Start' : 'Goal'}</title>
-                  </image>
-                ));
+                  </image>,
+                ];
               })}
               {selectedSite >= 0 &&
                 questHexes(file)
