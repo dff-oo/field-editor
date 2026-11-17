@@ -50,12 +50,6 @@ const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
 
-const KIND_TINT: Record<FieldSiteFile['kind'], string> = {
-  cutscene: styles.tintCutscene,
-  battle: styles.tintBattle,
-  treasure: styles.tintTreasure,
-  move: styles.tintMove,
-};
 const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
 /** The game's hex frames are scaled so their line box covers one cell exactly. */
@@ -72,7 +66,6 @@ const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'helmet-gold', label: 'Strong enemy' },
   { icon: 'helmet-green', label: 'Side quest' },
   { icon: 'treasure', label: 'Treasure' },
-  { icon: 'move', label: 'Move' },
   { icon: 'portal', label: 'Portal' },
 ];
 
@@ -688,7 +681,7 @@ export function Editor() {
                 if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
                 const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
-                const tint = occupied >= 0 ? KIND_TINT[file.sites[occupied].kind] : portalHere ? styles.tintPortal : undefined;
+                const tint = (occupied >= 0 && file.sites[occupied].kind !== 'move') || portalHere ? styles.tintEvent : undefined;
                 const tip = occupied >= 0
                   ? hexTip(file, [x, y], resources.talks)
                   : portalHere
@@ -736,6 +729,9 @@ export function Editor() {
                   />
                 );
               }))}
+              {file.sites.flatMap((site) => site.kind === 'move' ? site.hexes : [])
+                .filter((hex) => !file.portal || !sameHex(hex, file.portal.hex))
+                .map(([x, y]) => <polygon key={`move-${x}-${y}`} points={hexOutline(x, y)} className={styles.moveCell} />)}
               {at && (() => {
                 const { cx, cy } = hexPixel(at[0], at[1]);
                 return (
@@ -825,15 +821,12 @@ export function Editor() {
               <div className={styles.legendBody} aria-label="Map legend">
                 {LEGEND.map(({ icon, label }) => (
                   <span key={icon}>
-                    {icon === 'move' ? <span className={`${styles.swatch} ${styles.swatchMove}`} aria-hidden="true" /> : <GameIcon name={icon} size={20} />}
+                    <GameIcon name={icon} size={20} />
                     {label}
                   </span>
                 ))}
                 <span><GameIcon name="start" size={20} /> Start</span>
-                <span><GameIcon name="goal" size={20} /> Goal</span>
-                <span><span className={`${styles.swatch} ${styles.swatchReveals}`} aria-hidden="true" /> Revealed when cleared</span>
-                <span><span className={`${styles.swatch} ${styles.swatchRevealer}`} aria-hidden="true" /> Cleared to reveal it</span>
-              </div>
+                <span><GameIcon name="goal" size={20} /> Goal</span>              </div>
             )}
           </div>
           <div className={styles.mapControls}>
