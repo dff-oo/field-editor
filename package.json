@@ -8,7 +8,7 @@
     "field-maps": "tsx scripts/export-field-maps.ts"
   },
   "dependencies": {
-    "@dffoogg/resources": "github:dffoogg/resources#34be32c",
+    "@dffoogg/resources": "github:dffoogg/resources#b7114cd",
     "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
