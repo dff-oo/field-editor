@@ -316,6 +316,12 @@ button.chip {
   filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
 }
 
+.map svg .hover {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+}
+
 .readout {
   position: absolute;
   right: 0;

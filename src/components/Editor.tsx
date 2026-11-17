@@ -799,12 +799,13 @@ export function Editor() {
               {cursor && !(at && sameHex(cursor, at)) && (
                 <polygon points={hexOutline(cursor[0], cursor[1])} className={hexClass(styles.outline, styles.cursor)} />
               )}
-              {[hover, at].map((hex, index) => {
-                if (!hex || (index === 0 && at && sameHex(hex, at))) return null;
-                const { cx, cy } = hexPixel(hex[0], hex[1]);
+              {hover && !(at && sameHex(hover, at)) && (
+                <polygon points={hexOutline(hover[0], hover[1])} className={hexClass(styles.outline, styles.hover)} />
+              )}
+              {at && (() => {
+                const { cx, cy } = hexPixel(at[0], at[1]);
                 return (
                   <image
-                    key={index === 0 ? 'hover' : 'selected'}
                     href={gameIconSrc('hex-selected')}
                     x={cx - FRAME_CENTRE_X}
                     y={cy - FRAME_CENTRE_Y}
@@ -814,7 +815,7 @@ export function Editor() {
                     className={styles.eventFrame}
                   />
                 );
-              })}
+              })()}
             </svg>
           </div>
           <div className={styles.legend}>
