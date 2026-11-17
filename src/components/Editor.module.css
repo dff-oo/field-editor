@@ -257,49 +257,24 @@ button.chip {
   outline-offset: -3px;
 }
 
+/* The game's frame sprites draw the grid; the polygons are only hit targets and hover tints. */
 .hex {
-  stroke: var(--omnia-surface-3);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+  fill: transparent;
+  stroke: none;
   cursor: pointer;
 }
 
-.empty {
-  fill: var(--omnia-surface-1);
+.hex:hover {
+  fill: rgb(255 255 255 / 0.14);
 }
 
-.empty:hover {
-  fill: var(--omnia-surface-2);
+.gridFrame,
+.eventFrame {
+  pointer-events: none;
 }
 
-.hasOverlay .empty {
-  fill: transparent;
-  stroke: color-mix(in oklab, var(--omnia-fg) 55%, transparent);
-}
-
-.hasOverlay .empty:hover {
-  fill: color-mix(in oklab, var(--omnia-fg) 12%, transparent);
-}
-
-/* Site colours are data, not theme: they match what players recognise on the map. */
-.kindCutscene { fill: #e040fb; stroke: #f8bbff; }
-.kindBattle { fill: #ff1744; stroke: #ff9aa8; }
-.kindTreasure { fill: #ffea00; stroke: #fff9a8; }
-.kindMove { fill: #18ffff; stroke: #c4ffff; }
-.kindPortal { fill: #ffffff; stroke: #ffffff; pointer-events: none; }
-
-.map svg .hex:not(.empty) {
-  fill-opacity: 0.6;
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 90%));
-}
-
-.hasOverlay svg .hex:not(.empty) {
-  fill-opacity: 0.55;
-}
-
-.map svg .hex.kindTreasure {
-  fill-opacity: 0.85;
+.gridFrame {
+  opacity: 0.7;
 }
 
 .reveal {
@@ -397,22 +372,6 @@ button.chip {
   display: flex;
   align-items: center;
   gap: var(--omnia-space-2);
-}
-
-.legendBody svg {
-  width: 16px;
-  height: 18px;
-}
-
-.legendBody .hex {
-  fill-opacity: 1;
-  stroke-width: 1;
-  filter: none;
-  cursor: default;
-}
-
-.legendBody b {
-  font-weight: 900;
 }
 
 @media (forced-colors: active) {

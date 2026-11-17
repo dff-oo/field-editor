@@ -8,6 +8,7 @@ import {
   EmptyState,
   FilePlusIcon,
   FitIcon,
+  GAME_HEX_FRAME,
   GameIcon,
   gameIconSrc,
   type GameIconName,
@@ -54,6 +55,13 @@ const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
 /** Centre to the left or right corner of a hex, which sits on its middle line. */
 const HEX_HALF_WIDTH = (HEX_STEP_X * 2) / 3;
+/** The game's hex frames are stretched so their line box covers one cell exactly. */
+const FRAME_SCALE_X = (HEX_HALF_WIDTH * 2) / GAME_HEX_FRAME.width;
+const FRAME_SCALE_Y = HEX_STEP_Y / GAME_HEX_FRAME.height;
+const FRAME_WIDTH = GAME_HEX_FRAME.size * FRAME_SCALE_X;
+const FRAME_HEIGHT = GAME_HEX_FRAME.size * FRAME_SCALE_Y;
+const FRAME_CENTRE_X = (GAME_HEX_FRAME.left + GAME_HEX_FRAME.width / 2) * FRAME_SCALE_X;
+const FRAME_CENTRE_Y = (GAME_HEX_FRAME.top + GAME_HEX_FRAME.height / 2) * FRAME_SCALE_Y;
 
 const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'cutscene', label: 'Cutscene' },
@@ -64,14 +72,6 @@ const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'move', label: 'Move' },
   { icon: 'portal', label: 'Portal' },
 ];
-
-const KIND_CLASS: Record<string, string> = {
-  cutscene: styles.kindCutscene,
-  battle: styles.kindBattle,
-  treasure: styles.kindTreasure,
-  move: styles.kindMove,
-  portal: styles.kindPortal,
-};
 
 interface Camera {
   cx: number;
@@ -687,12 +687,32 @@ export function Editor() {
                   style={{ pointerEvents: 'none' }}
                 />
               )}
+              {[false, true].flatMap((eventPass) => Array.from({ length: columns * rows }, (_, index) => {
+                const x = index % columns;
+                const y = Math.floor(index / columns);
+                const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
+                if (image && !onMap(x, y, image) && !portalHere) return null;
+                const event = Boolean(portalHere) || siteAt(file, [x, y]) >= 0;
+                if (event !== eventPass) return null;
+                const { cx, cy } = hexPixel(x, y);
+                return (
+                  <image
+                    key={`frame-${x}-${y}`}
+                    href={gameIconSrc(event ? 'hex-event' : 'hex-grid')}
+                    x={cx - FRAME_CENTRE_X}
+                    y={cy - FRAME_CENTRE_Y}
+                    width={FRAME_WIDTH}
+                    height={FRAME_HEIGHT}
+                    preserveAspectRatio="none"
+                    className={event ? styles.eventFrame : styles.gridFrame}
+                  />
+                );
+              }))}
               {Array.from({ length: columns * rows }, (_, index) => {
                 const x = index % columns;
                 const y = Math.floor(index / columns);
                 if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
-                const kind = occupied >= 0 ? file.sites[occupied].kind : '';
                 const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
                 const tip = occupied >= 0
                   ? hexTip(file, [x, y], resources.talks)
@@ -703,7 +723,7 @@ export function Editor() {
                   <polygon
                     key={`${x}-${y}`}
                     points={hexOutline(x, y)}
-                    className={hexClass(occupied >= 0 ? KIND_CLASS[kind] : styles.empty)}
+                    className={hexClass()}
                     onClick={() => {
                       if (dragged.current) {
                         dragged.current = false;
@@ -717,11 +737,21 @@ export function Editor() {
                   </polygon>
                 );
               })}
-              {file.portal && (
-                <polygon points={hexOutline(file.portal.hex[0], file.portal.hex[1])} className={hexClass(styles.kindPortal)}>
-                  <title>{`Quest ${file.portal.quest_id} · Portal`}</title>
-                </polygon>
-              )}
+              {file.portal && (() => {
+                const { cx, cy } = hexPixel(file.portal.hex[0], file.portal.hex[1]);
+                return (
+                  <image
+                    href={gameIconSrc('portal')}
+                    x={cx - SPRITE_SIZE / 2}
+                    y={cy - SPRITE_SIZE / 2}
+                    width={SPRITE_SIZE}
+                    height={SPRITE_SIZE}
+                    className={styles.sprite}
+                  >
+                    <title>{`Quest ${file.portal.quest_id} · Portal`}</title>
+                  </image>
+                );
+              })()}
               {arrows.map(({ index, x1, y1, x2, y2 }) => (
                 <line key={`reveal-${index}`} className={styles.reveal} markerEnd="url(#reveal-arrow)" x1={x1} y1={y1} x2={x2} y2={y2} />
               ))}
