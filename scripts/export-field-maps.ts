@@ -152,9 +152,9 @@ function repoRoot(): string {
   return resolve(fileURLToPath(new URL('..', import.meta.url)));
 }
 
-/** The global client's archive: DFFOO_ARCHIVE_ROOT, otherwise archive/gb in this repo. */
+/** The device archive in the dffoogg-game checkout next to this repo. DFFOO_GAME_DIR overrides it. */
 function archiveRoot(): string {
-  return process.env.DFFOO_ARCHIVE_ROOT ?? resolve(repoRoot(), 'archive', 'gb');
+  return resolve(process.env.DFFOO_GAME_DIR ?? resolve(repoRoot(), '..', 'dffoogg-game'), 'archive');
 }
 
 /** The unpacker: DFFOO_UNPACKER, otherwise tools/re/package in this repo. */
