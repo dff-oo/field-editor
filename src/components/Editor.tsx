@@ -608,7 +608,6 @@ export function Editor() {
               if (event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
               const current = cameraRef.current ?? shown;
               pan.current = { id: event.pointerId, x: event.clientX, y: event.clientY, cx: current.cx, cy: current.cy, moved: false };
-              event.currentTarget.setPointerCapture(event.pointerId);
             }}
             onPointerMove={(event) => {
               const drag = pan.current;
@@ -616,7 +615,12 @@ export function Editor() {
               if (!drag || drag.id !== event.pointerId || !el) return;
               const dx = event.clientX - drag.x;
               const dy = event.clientY - drag.y;
-              if (Math.hypot(dx, dy) > 4) drag.moved = true;
+              if (!drag.moved) {
+                if (Math.hypot(dx, dy) <= 4) return;
+                // Capturing on press would retarget the click to this element, so a plain click never reaches the hex.
+                drag.moved = true;
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }
               const current = cameraRef.current ?? shown;
               const height = current.width * (el.clientHeight / Math.max(1, el.clientWidth));
               setCamera({
