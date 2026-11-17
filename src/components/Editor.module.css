@@ -339,6 +339,16 @@ button.chip {
   stroke-width: 8px;
 }
 
+.markerSmall {
+  font-size: 52px;
+  stroke-width: 6px;
+}
+
+.helmet {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.6));
+}
+
 .map svg .outline {
   fill: none;
   pointer-events: none;

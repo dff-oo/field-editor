@@ -9,6 +9,7 @@ import {
   FilePlusIcon,
   FitIcon,
   GameIcon,
+  gameIconSrc,
   type GameIconName,
   FolderOpenIcon,
   IconButton,
@@ -27,6 +28,7 @@ import {
   ZoomOutIcon,
 } from '@dffoogg/omnia-ui';
 import { fieldMapFor } from '@/lib/field-map';
+import { battleHelmet } from '@/lib/game-icons';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';
 import { checkFields, type NameTables } from '@/lib/field/check';
 import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
@@ -47,12 +49,16 @@ const LEGEND_KEY = 'field-editor.legend';
 const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
-const LEGEND = [
-  { kind: 'cutscene', label: 'Cutscene' },
-  { kind: 'battle', label: 'Battle' },
-  { kind: 'treasure', label: 'Treasure' },
-  { kind: 'move', label: 'Move' },
-  { kind: 'portal', label: 'Portal' },
+const HELMET_SIZE = 92;
+
+const LEGEND: { icon: GameIconName; label: string }[] = [
+  { icon: 'cutscene', label: 'Cutscene' },
+  { icon: 'helmet-silver', label: 'Battle' },
+  { icon: 'helmet-gold', label: 'Strong enemy' },
+  { icon: 'helmet-green', label: 'Side quest' },
+  { icon: 'treasure', label: 'Treasure' },
+  { icon: 'move', label: 'Move' },
+  { icon: 'portal', label: 'Portal' },
 ];
 
 const KIND_CLASS: Record<string, string> = {
@@ -726,16 +732,32 @@ export function Editor() {
                   );
                 });
               })}
+              {file.sites.map((site, index) => {
+                if (site.kind !== 'battle') return null;
+                const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
+                return (
+                  <image
+                    key={`helmet-${index}`}
+                    href={gameIconSrc(battleHelmet(site))}
+                    x={cx - HELMET_SIZE / 2}
+                    y={cy - HELMET_SIZE / 2}
+                    width={HELMET_SIZE}
+                    height={HELMET_SIZE}
+                    className={styles.helmet}
+                  />
+                );
+              })}
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'cutscene' && site.kind !== 'battle') return [];
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
                 const letters = [site.revealed_by === null && 'S', site.goal && 'G'].filter((letter) => letter) as string[];
+                const beside = site.kind === 'battle';
                 return letters.map((letter, n) => (
                   <text
                     key={`${letter}-${index}`}
-                    x={cx + (letters.length > 1 ? (n ? 30 : -30) : 0)}
-                    y={cy}
-                    className={styles.marker}
+                    x={beside ? cx + 40 : cx + (letters.length > 1 ? (n ? 30 : -30) : 0)}
+                    y={beside ? cy + (letters.length > 1 ? (n ? 26 : -26) : 0) : cy}
+                    className={beside ? `${styles.marker} ${styles.markerSmall}` : styles.marker}
                   >
                     {letter}
                   </text>
@@ -757,9 +779,9 @@ export function Editor() {
             </Button>
             {legendOpen && (
               <div className={styles.legendBody} aria-label="Map legend">
-                {LEGEND.map(({ kind, label }) => (
-                  <span key={kind}>
-                    <GameIcon name={kind as GameIconName} size={20} />
+                {LEGEND.map(({ icon, label }) => (
+                  <span key={icon}>
+                    <GameIcon name={icon} size={20} />
                     {label}
                   </span>
                 ))}

@@ -46,6 +46,12 @@
   gap: var(--omnia-space-1) var(--omnia-space-5);
 }
 
+.iconLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--omnia-space-1);
+}
+
 .group {
   display: flex;
   flex-direction: column;
