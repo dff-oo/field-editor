@@ -32,7 +32,7 @@ import { fieldMapFor } from '@/lib/field-map';
 import { siteIcon } from '@/lib/game-icons';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';
 import { checkFields, type NameTables } from '@/lib/field/check';
-import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
+import { HEX_EVEN_COLUMN_SHIFT, HEX_HALF_HEIGHT, HEX_HALF_WIDTH, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
 import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '@/lib/field/schema';
 import { questHexes, siteAt, siteLabel, fieldFileName, type HexAt } from '@/lib/edit';
 import { SitePanel } from './SitePanel';
@@ -53,11 +53,9 @@ const MAX_ZOOM = HEX_STEP_X * 48;
 const SPRITE_SIZE = 92;
 const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
-/** Centre to the left or right corner of a hex, which sits on its middle line. */
-const HEX_HALF_WIDTH = (HEX_STEP_X * 2) / 3;
-/** The game's hex frames are stretched so their line box covers one cell exactly. */
+/** The game's hex frames are scaled so their line box covers one cell exactly. */
 const FRAME_SCALE_X = (HEX_HALF_WIDTH * 2) / GAME_HEX_FRAME.width;
-const FRAME_SCALE_Y = HEX_STEP_Y / GAME_HEX_FRAME.height;
+const FRAME_SCALE_Y = (HEX_HALF_HEIGHT * 2) / GAME_HEX_FRAME.height;
 const FRAME_WIDTH = GAME_HEX_FRAME.size * FRAME_SCALE_X;
 const FRAME_HEIGHT = GAME_HEX_FRAME.size * FRAME_SCALE_Y;
 const FRAME_CENTRE_X = (GAME_HEX_FRAME.left + GAME_HEX_FRAME.width / 2) * FRAME_SCALE_X;

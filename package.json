@@ -10,7 +10,7 @@
     "field-maps": "tsx scripts/export-field-maps.ts"
   },
   "dependencies": {
-    "@dffoogg/omnia-ui": "github:dffoogg/omnia-ui#7d7fafb",
+    "@dffoogg/omnia-ui": "github:dffoogg/omnia-ui#a438d15",
     "@dffoogg/resources": "github:dffoogg/resources#b7114cd",
     "next": "16.4.6",
     "react": "^19.2.0",

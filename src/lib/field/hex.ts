@@ -44,31 +44,27 @@ export function hexPixel(x: number, y: number): { cx: number; cy: number } {
   };
 }
 
-/** The six neighbours, clockwise from north, matching adjacent(). */
-function neighbourRing(x: number, y: number): [number, number][] {
-  const south = x % 2 === 0 ? 1 : 0;
-  const north = x % 2 === 0 ? 0 : -1;
-  return [
-    [x, y - 1],
-    [x + 1, y + north],
-    [x + 1, y + south],
-    [x, y + 1],
-    [x - 1, y + south],
-    [x - 1, y + north],
-  ];
-}
+/**
+ * The game's cell is not a regular hexagon. Measured from the FieldMap_Hex frame texture:
+ * the left and right corners sit 89.5 px from the centre, and the top and bottom edges
+ * reach 36.5 px either side, which adds up to one column step so neighbours share corners.
+ */
+export const HEX_HALF_WIDTH = 89.5;
+export const HEX_HALF_EDGE = HEX_STEP_X - HEX_HALF_WIDTH;
+export const HEX_HALF_HEIGHT = HEX_STEP_Y / 2;
 
 /** Cell outline whose corners are shared with the neighbouring cells. */
 export function hexOutline(x: number, y: number): string {
-  const here = hexPixel(x, y);
-  const ring = neighbourRing(x, y);
-  return ring
-    .map((neighbour, index) => {
-      const next = ring[(index + 1) % ring.length];
-      const a = hexPixel(neighbour[0], neighbour[1]);
-      const b = hexPixel(next[0], next[1]);
-      return `${(here.cx + a.cx + b.cx) / 3},${(here.cy + a.cy + b.cy) / 3}`;
-    })
+  const { cx, cy } = hexPixel(x, y);
+  return [
+    [cx + HEX_HALF_WIDTH, cy],
+    [cx + HEX_HALF_EDGE, cy + HEX_HALF_HEIGHT],
+    [cx - HEX_HALF_EDGE, cy + HEX_HALF_HEIGHT],
+    [cx - HEX_HALF_WIDTH, cy],
+    [cx - HEX_HALF_EDGE, cy - HEX_HALF_HEIGHT],
+    [cx + HEX_HALF_EDGE, cy - HEX_HALF_HEIGHT],
+  ]
+    .map(([px, py]) => `${px},${py}`)
     .join(' ');
 }
 
