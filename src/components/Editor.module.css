@@ -317,34 +317,18 @@ button.chip {
   fill-opacity: 0.85;
 }
 
-.step,
-.marker {
+.step {
   text-anchor: middle;
   dominant-baseline: central;
   paint-order: stroke;
   pointer-events: none;
-}
-
-.step {
   font: 900 52px var(--omnia-font-sans);
   fill: #042428;
   stroke: #ffffff;
   stroke-width: 6px;
 }
 
-.marker {
-  font: 900 88px var(--omnia-font-sans);
-  fill: #ffffff;
-  stroke: #000000;
-  stroke-width: 8px;
-}
-
-.markerSmall {
-  font-size: 52px;
-  stroke-width: 6px;
-}
-
-.helmet {
+.sprite {
   pointer-events: none;
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.6));
 }

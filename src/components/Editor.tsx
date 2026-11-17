@@ -28,7 +28,7 @@ import {
   ZoomOutIcon,
 } from '@dffoogg/omnia-ui';
 import { fieldMapFor } from '@/lib/field-map';
-import { battleHelmet } from '@/lib/game-icons';
+import { siteIcon } from '@/lib/game-icons';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';
 import { checkFields, type NameTables } from '@/lib/field/check';
 import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
@@ -49,7 +49,9 @@ const LEGEND_KEY = 'field-editor.legend';
 const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
-const HELMET_SIZE = 92;
+const SPRITE_SIZE = 92;
+const BADGE_SIZE = 50;
+const BADGE_OFFSET_X = 46;
 
 const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'cutscene', label: 'Cutscene' },
@@ -733,34 +735,37 @@ export function Editor() {
                 });
               })}
               {file.sites.map((site, index) => {
-                if (site.kind !== 'battle') return null;
+                const icon = siteIcon(site);
+                if (!icon || site.kind === 'move') return null;
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
                 return (
                   <image
-                    key={`helmet-${index}`}
-                    href={gameIconSrc(battleHelmet(site))}
-                    x={cx - HELMET_SIZE / 2}
-                    y={cy - HELMET_SIZE / 2}
-                    width={HELMET_SIZE}
-                    height={HELMET_SIZE}
-                    className={styles.helmet}
+                    key={`sprite-${index}`}
+                    href={gameIconSrc(icon)}
+                    x={cx - SPRITE_SIZE / 2}
+                    y={cy - SPRITE_SIZE / 2}
+                    width={SPRITE_SIZE}
+                    height={SPRITE_SIZE}
+                    className={styles.sprite}
                   />
                 );
               })}
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'cutscene' && site.kind !== 'battle') return [];
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
-                const letters = [site.revealed_by === null && 'S', site.goal && 'G'].filter((letter) => letter) as string[];
-                const beside = site.kind === 'battle';
-                return letters.map((letter, n) => (
-                  <text
-                    key={`${letter}-${index}`}
-                    x={beside ? cx + 40 : cx + (letters.length > 1 ? (n ? 30 : -30) : 0)}
-                    y={beside ? cy + (letters.length > 1 ? (n ? 26 : -26) : 0) : cy}
-                    className={beside ? `${styles.marker} ${styles.markerSmall}` : styles.marker}
+                const badges = [site.revealed_by === null && 'start', site.goal && 'goal'].filter((badge) => badge) as ('start' | 'goal')[];
+                return badges.map((badge, n) => (
+                  <image
+                    key={`${badge}-${index}`}
+                    href={gameIconSrc(badge)}
+                    x={cx + BADGE_OFFSET_X - BADGE_SIZE / 2}
+                    y={cy + (badges.length > 1 ? (n ? 1 : -1) * BADGE_SIZE / 2 : 0) - BADGE_SIZE / 2}
+                    width={BADGE_SIZE}
+                    height={BADGE_SIZE}
+                    className={styles.sprite}
                   >
-                    {letter}
-                  </text>
+                    <title>{badge === 'start' ? 'Start' : 'Goal'}</title>
+                  </image>
                 ));
               })}
               {selectedSite >= 0 &&
