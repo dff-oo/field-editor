@@ -150,24 +150,33 @@ export function Editor() {
   }
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('f');
-    if (!token) return;
-    let cancelled = false;
-    void decodeField(token)
-      .then((data) => {
-        if (cancelled) return;
-        const parsed = fieldFileSchema.safeParse(data);
-        if (!parsed.success) {
-          setLoadErrors(parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(link)'}: ${issue.message}`));
-          return;
-        }
-        open(parsed.data);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) setLoadErrors([error instanceof Error ? error.message : String(error)]);
-      });
+    // Editing the address bar changes the hash without reloading, so listen as well as reading it once.
+    let generation = 0;
+    function loadFromHash() {
+      const token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('f');
+      if (!token) return;
+      // The address bar is not kept in sync with edits, so drop the stale link; Copy link makes a fresh one.
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      const current = ++generation;
+      void decodeField(token)
+        .then((data) => {
+          if (current !== generation) return;
+          const parsed = fieldFileSchema.safeParse(data);
+          if (!parsed.success) {
+            setLoadErrors(parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(link)'}: ${issue.message}`));
+            return;
+          }
+          open(parsed.data);
+        })
+        .catch((error: unknown) => {
+          if (current === generation) setLoadErrors([error instanceof Error ? error.message : String(error)]);
+        });
+    }
+    loadFromHash();
+    window.addEventListener('hashchange', loadFromHash);
     return () => {
-      cancelled = true;
+      generation += 1;
+      window.removeEventListener('hashchange', loadFromHash);
     };
   }, []);
 
