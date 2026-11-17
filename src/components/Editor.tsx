@@ -692,7 +692,8 @@ export function Editor() {
                 const y = Math.floor(index / columns);
                 const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
                 if (image && !onMap(x, y, image) && !portalHere) return null;
-                const event = Boolean(portalHere) || siteAt(file, [x, y]) >= 0;
+                const occupied = siteAt(file, [x, y]);
+                const event = Boolean(portalHere) || (occupied >= 0 && file.sites[occupied].kind !== 'move');
                 if (event !== eventPass) return null;
                 const { cx, cy } = hexPixel(x, y);
                 return (
