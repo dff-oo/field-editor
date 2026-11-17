@@ -1,6 +1,6 @@
 # DFFOO field editor
 
-A browser editor for Dissidia Final Fantasy Opera Omnia story maps. A map is a JSON file. This repo is the editor. It does not contain the game server.
+A browser editor for Dissidia Final Fantasy Opera Omnia fields. A field is a JSON file. This repo is the editor. It does not contain the game server.
 
 The hosted editor is at <https://dffoogg.github.io/field-editor/>. Every push to `main` rebuilds and deploys it with the [Pages workflow](.github/workflows/pages.yml).
 
@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open the page Next prints (port 3000). **New** starts an empty map, **Load** opens a story JSON file, and **Save as…** writes one. The editor does not write into this repo. [examples/field-001.json](examples/field-001.json) is Chapter 1 and can be loaded as a starting point.
+Open the page Next prints (port 3000). **New** starts an empty map, **Load** opens a field JSON file, and **Save as…** writes one. **Copy link** copies a link that opens this field. The editor does not write into this repo. [examples/field-001.json](examples/field-001.json) is Chapter 1 and can be loaded as a starting point. A file the game server should serve is copied, by hand, into that server's `fields/`. The schema is [field.schema.json](https://dffoogg.github.io/field-editor/field.schema.json), written into `public/` by `predev` and `prebuild`.
 
 See [docs/contributing-content.md](docs/contributing-content.md) for how a file is put together.
 

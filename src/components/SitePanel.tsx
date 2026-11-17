@@ -1,18 +1,18 @@
 import { useMemo } from 'react';
-import { MISSION_TYPES } from '@/lib/story/compile';
-import type { MissionFile, RewardFile, StoryFile, StorySiteFile } from '@/lib/story/schema';
+import { MISSION_TYPES } from '@/lib/field/compile';
+import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
 import { KINDS, adjacentMoves, changeKind, clearHex, defaultReveal, extendMove, newSite, questHexes, siteAt, siteLabel, type HexAt, type Kind } from '@/lib/edit';
 import { SearchSelect, namedOptions, stageOptions, type Option } from './SearchSelect';
 
-type Battle = Extract<StorySiteFile, { kind: 'battle' }>;
-type Placed = Extract<StorySiteFile, { kind: 'cutscene' | 'battle' }>;
+type Battle = Extract<FieldSiteFile, { kind: 'battle' }>;
+type Placed = Extract<FieldSiteFile, { kind: 'cutscene' | 'battle' }>;
 
 export function SitePanel(props: {
-  file: StoryFile;
+  file: FieldFile;
   at: HexAt;
   resources: Resources;
-  onChange: (file: StoryFile) => void;
+  onChange: (file: FieldFile) => void;
 }) {
   const { file, at, resources } = props;
   const index = siteAt(file, at);
@@ -28,7 +28,7 @@ export function SitePanel(props: {
   }), [resources]);
   const quests = useMemo(() => questOptions(file, resources.talks), [file, resources.talks]);
 
-  function put(next: StorySiteFile) {
+  function put(next: FieldSiteFile) {
     const sites = file.sites.slice();
     sites[index] = next;
     props.onChange({ ...file, sites });
@@ -177,7 +177,7 @@ export function SitePanel(props: {
   );
 }
 
-function questOptions(file: StoryFile, talks: Resources['talks']): Option[] {
+function questOptions(file: FieldFile, talks: Resources['talks']): Option[] {
   return questHexes(file)
     .filter((row) => row.site >= 0)
     .map((row) => ({ key: String(row.questId), label: `${row.questId} ${siteLabel(file, row.site, talks)} (${row.hex[0]}, ${row.hex[1]})` }))

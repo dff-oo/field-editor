@@ -1,33 +1,33 @@
-export type StorySiteKind = 'cutscene' | 'battle' | 'move' | 'treasure';
+export type FieldSiteKind = 'cutscene' | 'battle' | 'move' | 'treasure';
 
-export interface StoryReward {
+export interface FieldReward {
   item_type: number;
   item_id: number;
   item_num: number;
 }
 
-export interface StoryMission {
+export interface FieldMission {
   /** Index into MessageData_QuestMissionText. */
   type: number;
   arg: number;
   description: string;
-  reward: StoryReward;
+  reward: FieldReward;
 }
 
-export interface StoryEnemy {
+export interface FieldEnemy {
   /** battle_enemy_id. Stats come from mst_enemy_level at enemy_id * 1000 + level. */
   enemy: number;
   level: number;
 }
 
-export interface StoryBattle {
+export interface FieldBattle {
   /** Enemies in each wave. The wave count is the quest's "Battles" figure. */
-  waves: readonly (readonly StoryEnemy[])[];
+  waves: readonly (readonly FieldEnemy[])[];
   breakBonus: number;
   goalScore: number;
-  scoreReward: StoryReward;
-  missions: readonly [StoryMission, StoryMission, StoryMission];
-  clearBonus: readonly StoryReward[];
+  scoreReward: FieldReward;
+  missions: readonly [FieldMission, FieldMission, FieldMission];
+  clearBonus: readonly FieldReward[];
   exp: number;
   gil: number;
   /**
@@ -44,10 +44,10 @@ export interface StoryBattle {
   sideQuest?: boolean;
 }
 
-export interface StorySite {
+export interface FieldSite {
   questId: number;
   name: string;
-  kind: StorySiteKind;
+  kind: FieldSiteKind;
   beforeTalk: number;
   /**
    * Hex grid: y grows southward and even columns sit half a cell south of odd
@@ -60,9 +60,9 @@ export interface StorySite {
   revealedBy: number | null;
   /** Character id from MessageData_Character drawn on the hex, or -1. */
   charaIcon: number;
-  battle?: StoryBattle;
+  battle?: FieldBattle;
   /** A treasure chest's contents, granted on its first clear. */
-  treasure?: readonly StoryReward[];
+  treasure?: readonly FieldReward[];
   /** Map quest_type, when it is not the kind's usual one. */
   questType?: number;
 }

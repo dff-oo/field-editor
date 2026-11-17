@@ -10,12 +10,16 @@ import summons from '@dffoogg/resources/summons.json';
 import stages from '@dffoogg/resources/stages.json';
 import talks from '@dffoogg/resources/talks.json';
 import { decodeEtc1 } from '../scripts/export-field-maps';
-import { storyFileName } from '../src/lib/edit';
+import { fieldFileName } from '../src/lib/edit';
 import { fieldMapFor } from '../src/lib/field-map';
 import fieldMaps from '../src/lib/field-maps.json';
 import { withStageNames, type Stage } from '../src/lib/resources';
 import stageNames from '../src/lib/stage-names.json';
-import { checkStories, type NameTables } from '../src/lib/story/check';
+import Ajv from 'ajv';
+import { checkFields, type NameTables } from '../src/lib/field/check';
+import { fieldFileSchema, type FieldFile } from '../src/lib/field/schema';
+import { fieldJsonSchema } from '../scripts/export-schema';
+import { decodeField, encodeField } from '../src/lib/share';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -55,8 +59,28 @@ describe('stage names', () => {
 describe('example map', () => {
   it('finds no problems when the installed resources are loaded', () => {
     const data = JSON.parse(readFileSync(join(root, 'examples', 'field-001.json'), 'utf8')) as { field: number };
-    const problems = checkStories([{ name: storyFileName(data.field), data }], nameTables());
+    const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
     expect(problems).toEqual([]);
+  });
+});
+
+describe('field links', () => {
+  const example = (): FieldFile => fieldFileSchema.parse(JSON.parse(readFileSync(join(root, 'examples', 'field-001.json'), 'utf8')));
+
+  it('round-trips a field through a link token', async () => {
+    const field = example();
+    const token = await encodeField(field);
+    expect(token.startsWith('v1.')).toBe(true);
+    expect(await decodeField(token)).toEqual(field);
+  });
+
+  it('rejects a token from another version', async () => {
+    await expect(decodeField('v0.aaaa')).rejects.toThrow(/does not know/);
+  });
+
+  it('publishes a schema that accepts the example', () => {
+    const validate = new Ajv({ strict: false }).compile(fieldJsonSchema());
+    expect(validate(example())).toBe(true);
   });
 });
 

@@ -2,7 +2,9 @@
   "name": "@dffoogg/field-editor",
   "private": true,
   "scripts": {
+    "predev": "tsx scripts/export-schema.ts",
     "dev": "next dev",
+    "prebuild": "tsx scripts/export-schema.ts",
     "build": "next build",
     "test": "vitest run",
     "field-maps": "tsx scripts/export-field-maps.ts"
@@ -18,9 +20,11 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "ajv": "^8.20.0",
     "oo_tool": "1.4.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "zod-to-json-schema": "^3.25.2"
   }
 }

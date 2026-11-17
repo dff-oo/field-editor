@@ -86,7 +86,7 @@ export function decodeEtc1(src: Buffer, width: number, height: number): Buffer {
 
 /**
  * Field maps are GT1G version 0600, one ETC1 texture. The header records a square
- * (1024×1024 for the story maps) and the payload is tall enough for twice that,
+ * (1024×1024 for the field maps) and the payload is tall enough for twice that,
  * with the painting in the top half.
  */
 export function decodeFieldMap(g1t: Buffer): { rgba: Buffer; width: number; height: number } {

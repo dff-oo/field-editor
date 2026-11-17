@@ -1,5 +1,5 @@
-import type { StoryBattle, StoryMission, StoryReward, StorySite } from './story-content';
-import { storyFileSchema, type MissionFile, type RewardFile, type StoryFile, type StorySiteFile } from './schema';
+import type { FieldBattle, FieldMission, FieldReward, FieldSite } from './field-content';
+import { fieldFileSchema, type MissionFile, type RewardFile, type FieldFile, type FieldSiteFile } from './schema';
 
 export interface WorldLayout {
   param_x: number;
@@ -17,7 +17,7 @@ export interface WorldLayout {
   hide_cloud_tex: number;
 }
 
-export interface StoryPortal {
+export interface FieldPortal {
   questId: number;
   hexX: number;
   hexY: number;
@@ -25,23 +25,23 @@ export interface StoryPortal {
   hiddenBy: number;
 }
 
-export interface FieldStory {
+export interface CompiledField {
   fieldId: number;
   world: WorldLayout | null;
-  sites: StorySite[];
-  portal: StoryPortal | null;
+  sites: FieldSite[];
+  portal: FieldPortal | null;
   goalQuestId: number | null;
 }
 
-export interface StoryCatalog {
-  fields: Map<number, FieldStory>;
+export interface FieldCatalog {
+  fields: Map<number, CompiledField>;
   joins: ReadonlyMap<number, number>;
   summons: ReadonlyMap<number, number>;
 }
 
 const FALLBACK = { breakBonus: 450, exp: 4, gil: 28, questBattleOffset: 50 };
 
-export function rewardFromFile(file: RewardFile | undefined): StoryReward {
+export function rewardFromFile(file: RewardFile | undefined): FieldReward {
   if (!file || 'gems' in file) {
     return { item_type: 99, item_id: 2, item_num: file && 'gems' in file ? file.gems : 20 };
   }
@@ -49,10 +49,10 @@ export function rewardFromFile(file: RewardFile | undefined): StoryReward {
   return { item_type: file.item_type, item_id: file.item_id, item_num: file.num };
 }
 
-/** The mission kinds a story file can name, and the mission_type the client expects for each. */
+/** The mission kinds a field file can name, and the mission_type the client expects for each. */
 export const MISSION_TYPES = { no_kos: 2, within_turns: 3, breaks: 4, in_party: 8, use_ability: 28 } as const;
 
-export function missionFromFile(file: MissionFile): StoryMission {
+export function missionFromFile(file: MissionFile): FieldMission {
   if (file === 'no_kos' || 'no_kos' in file) {
     return {
       type: MISSION_TYPES.no_kos,
@@ -93,8 +93,8 @@ export function missionFromFile(file: MissionFile): StoryMission {
   };
 }
 
-function battleFromSite(site: Extract<StorySiteFile, { kind: 'battle' }>, offset: number): StoryBattle {
-  const battle: StoryBattle = {
+function battleFromSite(site: Extract<FieldSiteFile, { kind: 'battle' }>, offset: number): FieldBattle {
+  const battle: FieldBattle = {
     waves: site.waves.map((wave) => wave.map((enemy) => ({ enemy: enemy.enemy, level: enemy.level }))),
     breakBonus: site.break_bonus ?? FALLBACK.breakBonus,
     goalScore: site.goal_score,
@@ -114,16 +114,16 @@ function battleFromSite(site: Extract<StorySiteFile, { kind: 'battle' }>, offset
 export interface CompiledFile {
   fieldId: number;
   world: WorldLayout | null;
-  sites: StorySite[];
-  portal: StoryPortal | null;
+  sites: FieldSite[];
+  portal: FieldPortal | null;
   goalQuestId: number | null;
   joins: Map<number, number>;
   summons: Map<number, number>;
 }
 
-export function compileStoryFile(file: StoryFile): CompiledFile {
+export function compileFieldFile(file: FieldFile): CompiledFile {
   const offset = file.defaults?.quest_battle_id_offset ?? FALLBACK.questBattleOffset;
-  const sites: StorySite[] = [];
+  const sites: FieldSite[] = [];
   const joins = new Map<number, number>();
   const summons = new Map<number, number>();
   let goalQuestId: number | null = null;
@@ -145,7 +145,7 @@ export function compileStoryFile(file: StoryFile): CompiledFile {
       continue;
     }
     if (site.kind === 'treasure') {
-      const row: StorySite = {
+      const row: FieldSite = {
         questId: site.quest_id,
         name: site.name ?? '',
         kind: 'treasure',
@@ -161,7 +161,7 @@ export function compileStoryFile(file: StoryFile): CompiledFile {
       sites.push(row);
       continue;
     }
-    const row: StorySite = {
+    const row: FieldSite = {
       questId: site.quest_id,
       name: site.kind === 'battle' ? site.name : '',
       kind: site.kind,
@@ -197,14 +197,14 @@ export function compileStoryFile(file: StoryFile): CompiledFile {
   };
 }
 
-export function parseStoryFile(data: unknown, filename: string): StoryFile {
-  const parsed = storyFileSchema.safeParse(data);
+export function parseFieldFile(data: unknown, filename: string): FieldFile {
+  const parsed = fieldFileSchema.safeParse(data);
   if (!parsed.success) {
     const detail = parsed.error.issues
       .slice(0, 8)
       .map((issue) => `${issue.path.join('.') || '(file)'}: ${issue.message}`)
       .join('; ');
-    throw new Error(`${filename} does not match the story schema: ${detail}`);
+    throw new Error(`${filename} does not match the field schema: ${detail}`);
   }
   return parsed.data;
 }

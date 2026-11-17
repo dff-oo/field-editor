@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
-import { storyFileSchema, type StoryFile } from '@/lib/story/schema';
+import { fieldFileSchema, type FieldFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
-import { emptyStory } from '@/lib/edit';
+import { emptyField } from '@/lib/edit';
 import { SearchSelect, namedOptions } from './SearchSelect';
 
-/** Parses an uploaded story file, or returns what is wrong with it. */
-export async function readStory(upload: File): Promise<{ file: StoryFile } | { errors: string[] }> {
+/** Parses an uploaded field file, or returns what is wrong with it. */
+export async function readField(upload: File): Promise<{ file: FieldFile } | { errors: string[] }> {
   let data: unknown;
   try {
     data = JSON.parse(await upload.text());
   } catch {
     return { errors: [`${upload.name} is not valid JSON.`] };
   }
-  const parsed = storyFileSchema.safeParse(data);
+  const parsed = fieldFileSchema.safeParse(data);
   if (!parsed.success) {
     return { errors: parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(file)'}: ${issue.message}`) };
   }
@@ -21,7 +21,7 @@ export async function readStory(upload: File): Promise<{ file: StoryFile } | { e
 
 export function NewField(props: {
   resources: Resources;
-  onCreate: (file: StoryFile) => void;
+  onCreate: (file: FieldFile) => void;
   onCancel?: () => void;
 }) {
   const [field, setField] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export function NewField(props: {
         )}
         <div className="start-actions">
           {props.onCancel && <button type="button" onClick={props.onCancel}>Cancel</button>}
-          <button type="button" disabled={!(fieldId > 0)} onClick={() => props.onCreate(emptyStory(fieldId))}>
+          <button type="button" disabled={!(fieldId > 0)} onClick={() => props.onCreate(emptyField(fieldId))}>
             Create
           </button>
         </div>

@@ -1,6 +1,6 @@
-# Contributing story maps
+# Contributing fields
 
-Story maps are JSON files. The editor loads and saves them in the browser; nothing in this repo is written by the editor. [examples/field-001.json](../examples/field-001.json) is a complete Chapter 1 map. A file you want the game server to serve is copied, by hand, into that server's `fields/story/` (or `fields/drafts/` while it is still being written).
+Field files are JSON. The editor loads and saves them in the browser; nothing in this repo is written by the editor. [examples/field-001.json](../examples/field-001.json) is a complete Chapter 1 field. A file you want the game server to serve is copied, by hand, into that server's `fields/`. **Copy link** copies a URL that loads the field on screen.
 
 ## Names
 
@@ -18,10 +18,11 @@ Open the page Next prints (port 3000). The editor never writes to the repo.
 The toolbar has three buttons:
 
 - **New**: search for the field and press Create. The map starts empty.
-- **Load**: choose a story JSON file. A file that fails the schema is rejected, with the problems listed.
-- **Save as…**: choose where to write the map. Browsers without a save dialog download it instead.
+- **Load**: choose a field JSON file. A file that fails the schema is rejected, with the problems listed.
+- **Save as…**: choose where to write the field. Browsers without a save dialog download it instead.
+- **Copy link**: copies a link that opens the field on screen. The field itself is in the link.
 
-The editor does not remember which file you opened; the map on screen is all there is, and nothing is kept when the page closes.
+The editor does not remember which file you opened. The field on screen is all there is, and nothing is kept when the page closes, unless you copied a link: opening that link loads the field it holds.
 
 Click a hex, then choose what is on it: cutscene, battle, treasure or move. An occupied hex opens its details. The cutscene, enemy, stage, character, ability, item and summon fields are searchable lists of the installed resources. Picking a cutscene sets `before_talk`. Cutscenes and battles have Start and Goal ticks, shown in the game as S and G. Start is the site nothing reveals (`revealed_by: null`), and Goal sets `goal`; clearing it clears the field. A field needs one of each. Only a cutscene has a character icon, and its "joins the party" tickbox adds that same character. A cutscene has no name in the file: the server sends the talk's title from the client, so the game shows the real one. A battle must have a name, because the client shows whatever name the server sends and has none of its own; Save as stays disabled until every battle has one. On an empty hex next to the end of a move strip, "Extend move" adds that hex to the strip. "Delete" removes what is on the selected hex (a strip cut in the middle becomes two). The first site on an empty field has to be a cutscene or a battle, because only those can be the start. Undo and Redo are in the toolbar; Ctrl+Z and Ctrl+Y do the same, except while typing in a field, which keeps its own undo. Hover a hex for its quest and name. Arrows show which quest reveals each site, and a move strip's hexes are numbered in travel order; "Hide reveal arrows" turns the arrows off. A legend in the corner names the colours. "Hide field image" in the toolbar hides the painting to see the hexes plainly. The bar at the bottom is the same check the server's `content:check` runs.
 
@@ -35,7 +36,7 @@ One file is one field, or one act of a field. Files that share a `field` id are 
 
 Put the video or page that shows a site in `sources`. `notes` can still be written by hand; the editor keeps it but does not edit it, and the server ignores it.
 
-Quest ids must be unique and must not use the field clear marker (`field id * 100 + 99`, so 199 on field 1). The editor suggests the next free id. Chapter 1 uses 190-364. Whether other unused ids work in the client without a matching client master is still unverified, so keep a new act as a draft until that is checked.
+Quest ids must be unique and must not use the field clear marker (`field id * 100 + 99`, so 199 on field 1). The editor suggests the next free id. Chapter 1 uses 190-364. Whether other unused ids work in the client without a matching client master is still unverified, so keep a new act in its own file until that is checked.
 
 ## Check before a pull request
 

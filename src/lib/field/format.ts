@@ -1,4 +1,4 @@
-import type { StoryFile } from './schema';
+import type { FieldFile } from './schema';
 
 const FILE_KEYS = ['$schema', 'field', 'world', 'defaults', 'portal', 'sites'] as const;
 const WORLD_KEYS = [
@@ -28,7 +28,7 @@ function order(value: Record<string, unknown>, keys: readonly string[]): Record<
   return ordered;
 }
 
-export function orderStory(file: StoryFile): StoryFile {
+export function orderField(file: FieldFile): FieldFile {
   const sites = file.sites.map((site) => order(site, SITE_KEYS[site.kind]) as typeof site);
   return order(
     {
@@ -39,7 +39,7 @@ export function orderStory(file: StoryFile): StoryFile {
       sites,
     },
     FILE_KEYS,
-  ) as StoryFile;
+  ) as FieldFile;
 }
 
 function formatValue(value: unknown, indent: number, expand: boolean): string {
@@ -66,7 +66,7 @@ function isSite(value: unknown): boolean {
   return !!value && typeof value === 'object' && 'kind' in value;
 }
 
-/** Canonical story JSON: fixed key order, 2-space indent, short arrays on one line. */
-export function formatStory(file: StoryFile): string {
-  return `${formatValue(orderStory(file), 0, true)}\n`;
+/** Canonical field JSON: fixed key order, 2-space indent, short arrays on one line. */
+export function formatField(file: FieldFile): string {
+  return `${formatValue(orderField(file), 0, true)}\n`;
 }

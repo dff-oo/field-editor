@@ -144,7 +144,7 @@ export const portalSchema = z
   })
   .strict();
 
-export const storyFileSchema = z
+export const fieldFileSchema = z
   .object({
     $schema: z.string().optional(),
     field: z.number().int().positive(),
@@ -155,7 +155,7 @@ export const storyFileSchema = z
   })
   .strict();
 
-export type StoryFile = z.infer<typeof storyFileSchema>;
-export type StorySiteFile = z.infer<typeof siteSchema>;
+export type FieldFile = z.infer<typeof fieldFileSchema>;
+export type FieldSiteFile = z.infer<typeof siteSchema>;
 export type RewardFile = z.infer<typeof rewardSchema>;
 export type MissionFile = z.infer<typeof missionSchema>;

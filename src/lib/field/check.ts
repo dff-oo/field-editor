@@ -1,6 +1,6 @@
 import { adjacent, stranded } from './hex';
-import { compileStoryFile, type CompiledFile } from './compile';
-import { storyFileSchema, type MissionFile, type RewardFile, type StoryFile } from './schema';
+import { compileFieldFile, type CompiledFile } from './compile';
+import { fieldFileSchema, type MissionFile, type RewardFile, type FieldFile } from './schema';
 
 export interface NameTables {
   characters: ReadonlyMap<number, string>;
@@ -12,7 +12,7 @@ export interface NameTables {
   items: ReadonlyMap<string, string>;
 }
 
-export interface StoryProblem {
+export interface FieldProblem {
   file: string;
   message: string;
 }
@@ -38,16 +38,16 @@ function missionRewards(mission: MissionFile): RewardFile[] {
   return [];
 }
 
-export function checkStories(
+export function checkFields(
   files: readonly { name: string; data: unknown }[],
   names: NameTables | null,
-): StoryProblem[] {
-  const problems: StoryProblem[] = [];
+): FieldProblem[] {
+  const problems: FieldProblem[] = [];
   const expanded: Expanded[] = [];
   const questFiles = new Map<number, string>();
 
   for (const file of files) {
-    const parsed = storyFileSchema.safeParse(file.data);
+    const parsed = fieldFileSchema.safeParse(file.data);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         problems.push({
@@ -57,7 +57,7 @@ export function checkStories(
       }
       continue;
     }
-    const compiled = compileStoryFile(parsed.data);
+    const compiled = compileFieldFile(parsed.data);
     expanded.push({ file: file.name, fieldId: parsed.data.field, compiled });
     const ids = [
       ...compiled.sites.map((site) => site.questId),
@@ -100,8 +100,8 @@ export function checkStories(
   return problems;
 }
 
-function fieldProblems(fieldId: number, group: Expanded[]): StoryProblem[] {
-  const problems: StoryProblem[] = [];
+function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
+  const problems: FieldProblem[] = [];
   const file = group.map((entry) => entry.file).join(', ');
   const sites = group.flatMap((entry) => entry.compiled.sites);
   const portals = group.map((entry) => entry.compiled.portal).filter((portal) => portal !== null);
@@ -172,8 +172,8 @@ function fieldProblems(fieldId: number, group: Expanded[]): StoryProblem[] {
   return problems;
 }
 
-function referenceProblems(file: string, story: StoryFile, names: NameTables): StoryProblem[] {
-  const problems: StoryProblem[] = [];
+function referenceProblems(file: string, field: FieldFile, names: NameTables): FieldProblem[] {
+  const problems: FieldProblem[] = [];
   const expect = (kind: string, id: number, table: ReadonlyMap<number, string>, label?: string) => {
     if (table.size === 0) return;
     const found = table.get(id);
@@ -182,7 +182,7 @@ function referenceProblems(file: string, story: StoryFile, names: NameTables): S
       problems.push({ file, message: `${kind} ${id} is ${found}, not ${label}` });
     }
   };
-  for (const site of story.sites) {
+  for (const site of field.sites) {
     if (site.kind === 'move') continue;
     if (site.kind === 'cutscene' && site.chara_icon) expect('character', site.chara_icon, names.characters);
     if (site.kind !== 'treasure' && site.grants_summon) expect('summon', site.grants_summon, names.summons);
@@ -202,14 +202,14 @@ function referenceProblems(file: string, story: StoryFile, names: NameTables): S
     checkReward(file, site.score_reward, names, problems);
     for (const reward of site.clear_bonus ?? []) checkReward(file, reward, names, problems);
   }
-  for (const site of story.sites) {
+  for (const site of field.sites) {
     if (site.kind !== 'treasure') continue;
     for (const reward of site.treasure) checkReward(file, reward, names, problems);
   }
   return problems;
 }
 
-function checkReward(file: string, reward: RewardFile, names: NameTables, problems: StoryProblem[]): void {
+function checkReward(file: string, reward: RewardFile, names: NameTables, problems: FieldProblem[]): void {
   if (names.items.size === 0) return;
   const { type, id } = rewardIds(reward);
   if (!names.items.has(itemKey(type, id))) {

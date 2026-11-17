@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fieldMapFor } from '@/lib/field-map';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';
-import { checkStories, type NameTables } from '@/lib/story/check';
-import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/story/hex';
-import { storyFileSchema, type StoryFile, type StorySiteFile } from '@/lib/story/schema';
-import { questHexes, saveFileAs, siteAt, siteLabel, storyFileName, type HexAt } from '@/lib/edit';
+import { checkFields, type NameTables } from '@/lib/field/check';
+import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
+import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '@/lib/field/schema';
+import { questHexes, saveFileAs, siteAt, siteLabel, fieldFileName, type HexAt } from '@/lib/edit';
+import { decodeField, encodeField } from '@/lib/share';
 import { SitePanel } from './SitePanel';
-import { NewField, readStory } from './NewField';
+import { NewField, readField } from './NewField';
 
 const COLS = 20;
 const ROWS = 18;
@@ -36,11 +37,11 @@ function shorten(from: { cx: number; cy: number }, to: { cx: number; cy: number 
   return { x1: from.cx + ux * pull, y1: from.cy + uy * pull, x2: to.cx - ux * pull, y2: to.cy - uy * pull };
 }
 
-function siteHex(site: StorySiteFile): HexAt {
+function siteHex(site: FieldSiteFile): HexAt {
   return site.kind === 'move' ? site.hexes[0] : site.hex;
 }
 
-function hexTip(file: StoryFile, at: HexAt, talks: Resources['talks']): string | null {
+function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string | null {
   const index = siteAt(file, at);
   if (index < 0) return null;
   const site = file.sites[index];
@@ -77,14 +78,15 @@ function namesOf(resources: Resources): NameTables | null {
 export function Editor() {
   const [resources, setResources] = useState<Resources>(EMPTY_RESOURCES);
   const [resourceNote, setResourceNote] = useState('');
-  const [file, setFile] = useState<StoryFile | null>(null);
+  const [file, setFile] = useState<FieldFile | null>(null);
   const [creating, setCreating] = useState(false);
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
   const [at, setAt] = useState<HexAt | null>(null);
   const [showImage, setShowImage] = useState(true);
   const [hideArrows, setHideArrows] = useState(false);
-  const [past, setPast] = useState<StoryFile[]>([]);
-  const [future, setFuture] = useState<StoryFile[]>([]);
+  const [past, setPast] = useState<FieldFile[]>([]);
+  const [future, setFuture] = useState<FieldFile[]>([]);
   const editedAt = useRef(0);
 
   const fieldMap = file ? fieldMapFor(file.field) : null;
@@ -101,13 +103,13 @@ export function Editor() {
   }, []);
 
   const problems = useMemo(
-    () => (file ? checkStories([{ name: storyFileName(file.field), data: file }], namesOf(resources)) : []),
+    () => (file ? checkFields([{ name: fieldFileName(file.field), data: file }], namesOf(resources)) : []),
     [file, resources],
   );
 
-  const savable = useMemo(() => (file ? storyFileSchema.safeParse(file).success : false), [file]);
+  const savable = useMemo(() => (file ? fieldFileSchema.safeParse(file).success : false), [file]);
 
-  function open(next: StoryFile) {
+  function open(next: FieldFile) {
     setFile(next);
     setPast([]);
     setFuture([]);
@@ -117,7 +119,7 @@ export function Editor() {
     setAt(null);
   }
 
-  function edit(next: StoryFile) {
+  function edit(next: FieldFile) {
     if (!file) {
       setFile(next);
       return;
@@ -148,6 +150,28 @@ export function Editor() {
   }
 
   useEffect(() => {
+    const token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('f');
+    if (!token) return;
+    let cancelled = false;
+    void decodeField(token)
+      .then((data) => {
+        if (cancelled) return;
+        const parsed = fieldFileSchema.safeParse(data);
+        if (!parsed.success) {
+          setLoadErrors(parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(link)'}: ${issue.message}`));
+          return;
+        }
+        open(parsed.data);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setLoadErrors([error instanceof Error ? error.message : String(error)]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (creating || !file) return;
       const key = event.key.toLowerCase();
@@ -163,7 +187,7 @@ export function Editor() {
   }, [creating, file, past, future]);
 
   async function load(upload: File) {
-    const result = await readStory(upload);
+    const result = await readField(upload);
     if ('errors' in result) {
       setLoadErrors(result.errors);
       return;
@@ -193,9 +217,27 @@ export function Editor() {
         type="button"
         disabled={!file || creating || !savable}
         title={file && !savable ? 'Fix the problems in the bottom bar first; Load would reject this file.' : undefined}
-        onClick={() => file && void saveFileAs(storyFileName(file.field), file).catch((error) => setLoadErrors([String(error)]))}
+        onClick={() => file && void saveFileAs(fieldFileName(file.field), file).catch((error) => setLoadErrors([String(error)]))}
       >
         Save as…
+      </button>
+      <button
+        type="button"
+        disabled={!file || creating || !savable}
+        title={file && !savable ? 'Fix the problems in the bottom bar first; a link would not load.' : undefined}
+        onClick={() => {
+          if (!file) return;
+          const url = `${location.origin}${location.pathname}${location.search}#f=`;
+          void encodeField(file)
+            .then((token) => navigator.clipboard.writeText(url + token))
+            .then(() => {
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 2000);
+            })
+            .catch((error: unknown) => setLoadErrors([error instanceof Error ? error.message : String(error)]));
+        }}
+      >
+        {copied ? 'Copied' : 'Copy link'}
       </button>
       {file && !creating && (
         <>
@@ -226,7 +268,7 @@ export function Editor() {
         {creating ? (
           <NewField resources={resources} onCreate={open} onCancel={file ? () => setCreating(false) : undefined} />
         ) : (
-          <div className="start"><p>Start a new map or load a story JSON file.</p></div>
+          <div className="start"><p>Start a new map or load a field JSON file.</p></div>
         )}
         <div className="problems">{loadErrors.length ? loadErrors.join(' · ') : resourceNote}</div>
       </div>
@@ -368,10 +410,12 @@ export function Editor() {
           )}
         </aside>
       </div>
-      <div className={problems.length ? 'problems' : 'problems ok'}>
-        {problems.length
-          ? problems.map((problem) => problem.message).join(' · ')
-          : resourceNote || `${file.sites.length} site${file.sites.length === 1 ? '' : 's'}, no problems found.`}
+      <div className={problems.length || loadErrors.length ? 'problems' : 'problems ok'}>
+        {loadErrors.length
+          ? loadErrors.join(' · ')
+          : problems.length
+            ? problems.map((problem) => problem.message).join(' · ')
+            : resourceNote || `${file.sites.length} site${file.sites.length === 1 ? '' : 's'}, no problems found.`}
       </div>
     </div>
   );
