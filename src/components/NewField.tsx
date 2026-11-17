@@ -1,23 +1,8 @@
 import { useMemo, useState } from 'react';
-import { fieldFileSchema, type FieldFile } from '@/lib/field/schema';
+import type { FieldFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
 import { emptyField } from '@/lib/edit';
 import { SearchSelect, namedOptions } from './SearchSelect';
-
-/** Parses an uploaded field file, or returns what is wrong with it. */
-export async function readField(upload: File): Promise<{ file: FieldFile } | { errors: string[] }> {
-  let data: unknown;
-  try {
-    data = JSON.parse(await upload.text());
-  } catch {
-    return { errors: [`${upload.name} is not valid JSON.`] };
-  }
-  const parsed = fieldFileSchema.safeParse(data);
-  if (!parsed.success) {
-    return { errors: parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(file)'}: ${issue.message}`) };
-  }
-  return { file: parsed.data };
-}
 
 export function NewField(props: {
   resources: Resources;

@@ -7,9 +7,10 @@ import { checkFields, type NameTables } from '@/lib/field/check';
 import { HEX_EVEN_COLUMN_SHIFT, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
 import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '@/lib/field/schema';
 import { questHexes, saveFileAs, siteAt, siteLabel, fieldFileName, type HexAt } from '@/lib/edit';
-import { decodeField, encodeField } from '@/lib/share';
+import { encodeField } from '@/lib/share';
 import { SitePanel } from './SitePanel';
-import { NewField, readField } from './NewField';
+import { NewField } from './NewField';
+import { LoadField, readLink } from './LoadField';
 
 const COLS = 20;
 const ROWS = 18;
@@ -80,6 +81,7 @@ export function Editor() {
   const [resourceNote, setResourceNote] = useState('');
   const [file, setFile] = useState<FieldFile | null>(null);
   const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [at, setAt] = useState<HexAt | null>(null);
@@ -158,19 +160,11 @@ export function Editor() {
       // The address bar is not kept in sync with edits, so drop the stale link; Copy link makes a fresh one.
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
       const current = ++generation;
-      void decodeField(token)
-        .then((data) => {
-          if (current !== generation) return;
-          const parsed = fieldFileSchema.safeParse(data);
-          if (!parsed.success) {
-            setLoadErrors(parsed.error.issues.slice(0, 12).map((issue) => `${issue.path.join('.') || '(link)'}: ${issue.message}`));
-            return;
-          }
-          open(parsed.data);
-        })
-        .catch((error: unknown) => {
-          if (current === generation) setLoadErrors([error instanceof Error ? error.message : String(error)]);
-        });
+      void readLink(token).then((result) => {
+        if (current !== generation) return;
+        if ('errors' in result) setLoadErrors(result.errors);
+        else open(result.file);
+      });
     }
     loadFromHash();
     window.addEventListener('hashchange', loadFromHash);
@@ -195,33 +189,21 @@ export function Editor() {
     return () => window.removeEventListener('keydown', onKey);
   }, [creating, file, past, future]);
 
-  async function load(upload: File) {
-    const result = await readField(upload);
-    if ('errors' in result) {
-      setLoadErrors(result.errors);
-      return;
-    }
-    open(result.file);
-  }
-
   const fieldName = file ? resources.fields.find((row) => row.id === file.field)?.name : undefined;
 
   const toolbar = (
     <div className="toolbar">
       <button type="button" onClick={() => setCreating(true)}>New</button>
-      <label className="button">
-        Load
-        <input
-          type="file"
-          accept=".json,application/json"
-          hidden
-          onChange={(event) => {
-            const upload = event.target.files?.[0];
-            event.target.value = '';
-            if (upload) void load(upload);
+      <button type="button" onClick={() => setLoading(true)}>Load</button>
+      {loading && (
+        <LoadField
+          onOpen={(next) => {
+            setLoading(false);
+            open(next);
           }}
+          onClose={() => setLoading(false)}
         />
-      </label>
+      )}
       <button
         type="button"
         disabled={!file || creating || !savable}

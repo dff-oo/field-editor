@@ -18,7 +18,7 @@ Open the page Next prints (port 3000). The editor never writes to the repo.
 The toolbar has three buttons:
 
 - **New**: search for the field and press Create. The map starts empty.
-- **Load**: choose a field JSON file. A file that fails the schema is rejected, with the problems listed.
+- **Load**: paste a field link (the whole URL, its `#f=…` part, or the `v1.…` code) or choose a field JSON file. A field that fails the schema is rejected, with the problems listed.
 - **Save as…**: choose where to write the field. Browsers without a save dialog download it instead.
 - **Copy link**: copies a link that opens the field on screen. The field itself is in the link.
 

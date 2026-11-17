@@ -19,7 +19,7 @@ import Ajv from 'ajv';
 import { checkFields, type NameTables } from '../src/lib/field/check';
 import { fieldFileSchema, type FieldFile } from '../src/lib/field/schema';
 import { fieldJsonSchema } from '../scripts/export-schema';
-import { decodeField, encodeField } from '../src/lib/share';
+import { decodeField, encodeField, linkToken } from '../src/lib/share';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -76,6 +76,16 @@ describe('field links', () => {
 
   it('rejects a token from another version', async () => {
     await expect(decodeField('v0.aaaa')).rejects.toThrow(/does not know/);
+  });
+
+  it('finds the token in a pasted link, fragment or bare token', () => {
+    expect(linkToken('https://dffoogg.github.io/field-editor/#f=v1.abc_-')).toBe('v1.abc_-');
+    expect(linkToken('  #f=v1.abc\n')).toBe('v1.abc');
+    expect(linkToken('f=v1.abc')).toBe('v1.abc');
+    expect(linkToken('v1.abc')).toBe('v1.abc');
+    expect(linkToken('https://dffoogg.github.io/field-editor/')).toBe(null);
+    expect(linkToken('https://dffoogg.github.io/field-editor/#other')).toBe(null);
+    expect(linkToken('   ')).toBe(null);
   });
 
   it('publishes a schema that accepts the example', () => {

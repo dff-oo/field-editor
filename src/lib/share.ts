@@ -25,6 +25,16 @@ export async function encodeField(file: FieldFile): Promise<string> {
   return PREFIX + toBase64Url(await pack(new TextEncoder().encode(JSON.stringify(file)), true));
 }
 
+/** The token in a pasted full link, `#f=…` fragment, or bare `v1.…` token; null when there is none. */
+export function linkToken(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  const hash = trimmed.indexOf('#');
+  const fragment = hash >= 0 ? trimmed.slice(hash + 1) : trimmed;
+  if (fragment.startsWith('f=') || fragment.includes('&f=')) return new URLSearchParams(fragment).get('f') || null;
+  return hash < 0 && /^v\d+\.[\w-]+$/.test(trimmed) ? trimmed : null;
+}
+
 /** The field a token holds. Throws when the version or the bytes are not a field link. */
 export async function decodeField(token: string): Promise<unknown> {
   if (!token.startsWith(PREFIX)) throw new Error('This link uses a field format this editor does not know.');
