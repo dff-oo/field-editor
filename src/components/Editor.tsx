@@ -51,7 +51,7 @@ const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
-const MOVE_STAR_SIZE = 72;
+const MOVE_BADGE_RADIUS = 30;
 
 const KIND_TINT: Record<FieldSiteFile['kind'], string> = {
   cutscene: styles.tintCutscene,
@@ -688,6 +688,9 @@ export function Editor() {
                 <marker id="reveal-arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="36" markerHeight="36" orient="auto">
                   <path d="M 0 0 L 10 5 L 0 10 z" className={styles.revealHead} />
                 </marker>
+                <marker id="move-arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="30" markerHeight="30" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" className={styles.moveHead} />
+                </marker>
               </defs>
               {fieldMap && image && showImage && (
                 <image
@@ -789,34 +792,24 @@ export function Editor() {
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'move' || site.hexes.length === 0) return [];
                 const points = site.hexes.map((hex) => hexPixel(hex[0], hex[1]));
-                const first = points[0];
-                return [
-                  points.length > 1 && (
-                    <polyline
-                      key={`path-${index}`}
-                      points={points.map(({ cx, cy }) => `${cx},${cy}`).join(' ')}
-                      className={styles.movePath}
-                    />
-                  ),
-                  <image
-                    key={`move-${index}`}
-                    href={gameIconSrc('move')}
-                    x={first.cx - MOVE_STAR_SIZE / 2}
-                    y={first.cy - MOVE_STAR_SIZE / 2}
-                    width={MOVE_STAR_SIZE}
-                    height={MOVE_STAR_SIZE}
-                    className={styles.sprite}
-                  />,
-                ];
+                return points.slice(1).map((to, step) => {
+                  const segment = shorten(points[step], to, MOVE_BADGE_RADIUS + 6);
+                  return segment && (
+                    <line key={`path-${index}-${step}`} className={styles.movePath} markerEnd="url(#move-arrow)" {...segment} />
+                  );
+                });
               })}
               {file.sites.flatMap((site, index) => {
-                if (site.kind !== 'move' || site.hexes.length < 2) return [];
+                if (site.kind !== 'move') return [];
                 return site.hexes.map((hex, step) => {
                   const { cx, cy } = hexPixel(hex[0], hex[1]);
                   return (
-                    <text key={`step-${index}-${step}`} x={cx} y={cy} className={styles.step}>
-                      {step + 1}
-                    </text>
+                    <g key={`step-${index}-${step}`} className={styles.moveBadge}>
+                      <circle cx={cx} cy={cy} r={MOVE_BADGE_RADIUS} />
+                      <text x={cx} y={cy} className={styles.step}>
+                        {step + 1}
+                      </text>
+                    </g>
                   );
                 });
               })}
@@ -874,7 +867,7 @@ export function Editor() {
               <div className={styles.legendBody} aria-label="Map legend">
                 {LEGEND.map(({ icon, label }) => (
                   <span key={icon}>
-                    <GameIcon name={icon} size={20} />
+                    {icon === 'move' ? <span className={styles.legendStep} aria-hidden="true">1</span> : <GameIcon name={icon} size={20} />}
                     {label}
                   </span>
                 ))}

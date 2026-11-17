@@ -277,18 +277,47 @@ button.chip {
 .tintCutscene { fill: rgb(224 64 251 / 0.3); }
 .tintBattle { fill: rgb(255 23 68 / 0.28); }
 .tintTreasure { fill: rgb(255 214 0 / 0.32); }
-.tintMove { fill: rgb(24 255 255 / 0.22); }
+.tintMove {
+  fill: rgb(24 255 255 / 0.32);
+  stroke: #18ffff;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
 .tintPortal { fill: rgb(170 140 255 / 0.3); }
 .movePath {
-  fill: none;
   stroke: #18ffff;
-  stroke-width: 4;
-  stroke-dasharray: 2 9;
+  stroke-width: 12;
   stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+  filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.9));
   pointer-events: none;
+}
+
+.moveHead {
+  fill: #18ffff;
+}
+
+.moveBadge {
+  pointer-events: none;
+}
+
+.legendStep {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #18ffff;
+  border-radius: 50%;
+  background: #042428;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.moveBadge circle {
+  fill: #042428;
+  stroke: #18ffff;
+  stroke-width: 6;
+  filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.9));
 }
 
 .reveal {
@@ -311,10 +340,8 @@ button.chip {
   dominant-baseline: central;
   paint-order: stroke;
   pointer-events: none;
-  font: 900 52px var(--omnia-font-sans);
-  fill: #042428;
-  stroke: #ffffff;
-  stroke-width: 6px;
+  font: 900 38px var(--omnia-font-sans);
+  fill: #ffffff;
 }
 
 .sprite {
