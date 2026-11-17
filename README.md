@@ -21,11 +21,10 @@ See [docs/contributing-content.md](docs/contributing-content.md) for how a file 
 
 The paintings are PNGs in [public/field-maps](public/field-maps), with their display scales in [src/lib/field-maps.json](src/lib/field-maps.json). The hosted site serves them as static files.
 
-To rebuild them, a maintainer with the global client archive and the unpacker runs:
+To rebuild them, a maintainer with the global client archive runs:
 
 ```bash
-set DFFOO_UNPACKER=path\to\tools\re\package
 npm run field-maps
 ```
 
-The archive is read from the [game](https://github.com/dffoogg/game) repo, checked out next to this one as `../dffoogg-game` (`DFFOO_GAME_DIR` overrides that). `DFFOO_UNPACKER` defaults to `tools/re/package` in this repo, which is git-ignored. The script unpacks each FieldMap texture, decodes it, and writes `public/field-maps/NNN.png`. A texture that is not ETC1 is skipped and named in the script's output.
+The archive is read from the [game](https://github.com/dffoogg/game) repo, checked out next to this one as `../dffoogg-game` (`DFFOO_GAME_DIR` overrides that). Textures are unpacked with [oo_tool](https://www.npmjs.com/package/oo_tool), a pinned devDependency; `DFFOO_UNPACKER` points at another copy of it. The script unpacks each FieldMap texture, decodes it, and writes `public/field-maps/NNN.png`. A texture that is not ETC1 is skipped and named in the script's output.

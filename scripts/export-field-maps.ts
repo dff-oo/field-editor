@@ -157,9 +157,9 @@ function archiveRoot(): string {
   return resolve(process.env.DFFOO_GAME_DIR ?? resolve(repoRoot(), '..', 'dffoogg-game'), 'archive');
 }
 
-/** The unpacker: DFFOO_UNPACKER, otherwise tools/re/package in this repo. */
+/** The oo_tool package: DFFOO_UNPACKER, otherwise the devDependency in node_modules. */
 function unpackerRoot(): string {
-  return process.env.DFFOO_UNPACKER ?? resolve(repoRoot(), 'tools', 're', 'package');
+  return process.env.DFFOO_UNPACKER ?? resolve(repoRoot(), 'node_modules', 'oo_tool');
 }
 
 function loadMaster(): Record<string, DispRow> {
