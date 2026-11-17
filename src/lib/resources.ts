@@ -52,15 +52,15 @@ const TABLES = ['characters', 'enemies', 'abilities', 'items', 'summons', 'field
 type TableName = (typeof TABLES)[number];
 
 const tableImports: Record<TableName, () => Promise<{ default: unknown }>> = {
-  characters: () => import('@dffoodev/resources/characters.json'),
-  enemies: () => import('@dffoodev/resources/enemies.json'),
-  abilities: () => import('@dffoodev/resources/abilities.json'),
-  items: () => import('@dffoodev/resources/items.json'),
-  summons: () => import('@dffoodev/resources/summons.json'),
-  fields: () => import('@dffoodev/resources/fields.json'),
-  stages: () => import('@dffoodev/resources/stages.json'),
-  talks: () => import('@dffoodev/resources/talks.json'),
-  missions: () => import('@dffoodev/resources/missions.json'),
+  characters: () => import('@dffoogg/resources/characters.json'),
+  enemies: () => import('@dffoogg/resources/enemies.json'),
+  abilities: () => import('@dffoogg/resources/abilities.json'),
+  items: () => import('@dffoogg/resources/items.json'),
+  summons: () => import('@dffoogg/resources/summons.json'),
+  fields: () => import('@dffoogg/resources/fields.json'),
+  stages: () => import('@dffoogg/resources/stages.json'),
+  talks: () => import('@dffoogg/resources/talks.json'),
+  missions: () => import('@dffoogg/resources/missions.json'),
 };
 
 async function loadTable(name: TableName): Promise<unknown> {
@@ -76,7 +76,7 @@ async function loadTable(name: TableName): Promise<unknown> {
   return value;
 }
 
-/** Name tables from @dffoodev/resources, with the checked stage names merged over the extracted stages. */
+/** Name tables from @dffoogg/resources, with the checked stage names merged over the extracted stages. */
 export async function loadResources(): Promise<Resources> {
   const entries = await Promise.all(TABLES.map(async (name) => [name, await loadTable(name)] as const));
   const loaded = Object.fromEntries(entries) as unknown as Resources;

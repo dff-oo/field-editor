@@ -4,7 +4,7 @@ A browser editor for Dissidia Final Fantasy Opera Omnia story maps. A map is a J
 
 ## Run it
 
-The name tables come from the public [resources](https://github.com/dffoodev/resources) repository, installed as `@dffoodev/resources`. No token is required.
+The name tables come from the public [resources](https://github.com/dffoogg/resources) repository, installed as `@dffoogg/resources`. No token is required.
 
 ```bash
 npm install

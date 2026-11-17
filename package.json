@@ -1,5 +1,5 @@
 {
-  "name": "dffoo-field-editor",
+  "name": "@dffoogg/field-editor",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,7 @@
     "field-maps": "tsx scripts/export-field-maps.ts"
   },
   "dependencies": {
-    "@dffoodev/resources": "github:dffoodev/resources#34be32c",
+    "@dffoogg/resources": "github:dffoogg/resources#34be32c",
     "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

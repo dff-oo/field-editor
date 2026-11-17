@@ -4,7 +4,7 @@ Story maps are JSON files. The editor loads and saves them in the browser; nothi
 
 ## Names
 
-Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dffoodev/resources`, installed from the public [resources](https://github.com/dffoodev/resources) repository. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
+Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dffoogg/resources`, installed from the public [resources](https://github.com/dffoogg/resources) repository. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
 
 ## Run the editor
 
@@ -31,7 +31,7 @@ The field's painting is `public/field-maps/NNN.png`, committed in this repo. It 
 
 ## What a file contains
 
-One file is one field, or one act of a field. Files that share a `field` id are combined by the server: only one of them may set `world`, `portal` or `goal`. Numeric ids are stored without names. The editor and error messages show the names from `@dffoodev/resources`.
+One file is one field, or one act of a field. Files that share a `field` id are combined by the server: only one of them may set `world`, `portal` or `goal`. Numeric ids are stored without names. The editor and error messages show the names from `@dffoogg/resources`.
 
 Put the video or page that shows a site in `sources`. `notes` can still be written by hand; the editor keeps it but does not edit it, and the server ignores it.
 
