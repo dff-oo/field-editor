@@ -37,6 +37,10 @@ textarea { min-height: 60px; resize: vertical; }
 
 .has-overlay .hex.empty { fill: transparent; stroke: rgba(232, 228, 220, 0.55); }
 .inspector { overflow: auto; padding: 12px; border-left: 1px solid #3a362f; display: flex; flex-direction: column; gap: 10px; }
+.workspace.sidebar-closed { grid-template-columns: 1fr 36px; }
+.inspector.closed { padding: 12px 4px; overflow: hidden; }
+.sidebar-toggle { align-self: flex-end; padding: 0 8px; font-size: 1.2em; line-height: 1.4; }
+.inspector.closed .sidebar-toggle { align-self: center; }
 .inspector label { display: flex; flex-direction: column; gap: 4px; }
 .inspector label.check { flex-direction: row; align-items: center; gap: 8px; }
 .inspector fieldset { border: 1px solid #3a362f; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; }

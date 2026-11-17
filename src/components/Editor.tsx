@@ -17,6 +17,7 @@ const ROWS = 18;
 const HISTORY = 100;
 const MERGE_MS = 500;
 const ARROW_GAP = 52;
+const SIDEBAR_KEY = 'field-editor.sidebar';
 
 const LEGEND = [
   { kind: 'cutscene', label: 'Cutscene' },
@@ -87,6 +88,7 @@ export function Editor() {
   const [at, setAt] = useState<HexAt | null>(null);
   const [showImage, setShowImage] = useState(true);
   const [hideArrows, setHideArrows] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [past, setPast] = useState<FieldFile[]>([]);
   const [future, setFuture] = useState<FieldFile[]>([]);
   const editedAt = useRef(0);
@@ -103,6 +105,16 @@ export function Editor() {
         setResourceNote(error instanceof Error ? error.message : 'Could not load resources.');
       });
   }, []);
+
+  useEffect(() => {
+    if (window.localStorage.getItem(SIDEBAR_KEY) === 'closed') setSidebarOpen(false);
+  }, []);
+
+  function toggleSidebar() {
+    const next = !sidebarOpen;
+    setSidebarOpen(next);
+    window.localStorage.setItem(SIDEBAR_KEY, next ? 'open' : 'closed');
+  }
 
   const problems = useMemo(
     () => (file ? checkFields([{ name: fieldFileName(file.field), data: file }], namesOf(resources)) : []),
@@ -157,11 +169,11 @@ export function Editor() {
     function loadFromHash() {
       const token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('f');
       if (!token) return;
-      // The address bar is not kept in sync with edits, so drop the stale link; Copy link makes a fresh one.
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
       const current = ++generation;
       void readLink(token).then((result) => {
         if (current !== generation) return;
+        // The address bar is not kept in sync with edits, so drop the stale link; Copy link makes a fresh one.
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
         if ('errors' in result) setLoadErrors(result.errors);
         else open(result.file);
       });
@@ -291,7 +303,7 @@ export function Editor() {
   return (
     <div className="app">
       {toolbar}
-      <div className="workspace">
+      <div className={sidebarOpen ? 'workspace' : 'workspace sidebar-closed'}>
         <div className={fieldMap && showImage ? 'map has-overlay' : 'map'}>
           <svg viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}>
             <defs>
@@ -388,17 +400,28 @@ export function Editor() {
             <span><b>G</b> Goal</span>
           </aside>
         </div>
-        <aside className="inspector">
-          {at ? (
-            <SitePanel
-              file={file}
-              at={at}
-              resources={resources}
-              onChange={edit}
-            />
-          ) : (
-            <p>Click a hex to choose what is on it.</p>
-          )}
+        <aside className={sidebarOpen ? 'inspector' : 'inspector closed'}>
+          <button
+            type="button"
+            className="sidebar-toggle"
+            aria-expanded={sidebarOpen}
+            aria-label={sidebarOpen ? 'Collapse the sidebar' : 'Expand the sidebar'}
+            title={sidebarOpen ? 'Collapse the sidebar' : 'Expand the sidebar'}
+            onClick={toggleSidebar}
+          >
+            {sidebarOpen ? '›' : '‹'}
+          </button>
+          {sidebarOpen &&
+            (at ? (
+              <SitePanel
+                file={file}
+                at={at}
+                resources={resources}
+                onChange={edit}
+              />
+            ) : (
+              <p>Click a hex to choose what is on it.</p>
+            ))}
         </aside>
       </div>
       <div className={problems.length || loadErrors.length ? 'problems' : 'problems ok'}>
