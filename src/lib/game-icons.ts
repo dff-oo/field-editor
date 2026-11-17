@@ -6,7 +6,7 @@ export function kindIcon(kind: Kind): GameIconName {
   return kind === 'battle' ? 'helmet-silver' : kind;
 }
 
-/** The helmet the game draws for a battle. Strong enemy wins when both flags are set. */
+/** The helmet the game draws for a battle. The two flags are exclusive; the checker reports a battle with both. */
 export function battleHelmet(site: { strong_enemy?: boolean; side_quest?: boolean }): GameIconName {
   if (site.strong_enemy) return 'helmet-gold';
   if (site.side_quest) return 'helmet-green';

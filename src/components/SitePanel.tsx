@@ -336,13 +336,13 @@ function BattleFields(props: { site: Battle; resources: Resources; options: Pane
           label={<span className={styles.iconLabel}><GameIcon name="helmet-gold" size={20} />Strong enemy</span>}
           title="The game draws this battle with a gold helmet."
           checked={site.strong_enemy === true}
-          onCheckedChange={(checked) => props.onChange({ ...site, strong_enemy: checked ? true : undefined })}
+          onCheckedChange={(checked) => props.onChange({ ...site, strong_enemy: checked ? true : undefined, side_quest: checked ? undefined : site.side_quest })}
         />
         <Checkbox
           label={<span className={styles.iconLabel}><GameIcon name="helmet-green" size={20} />Side quest</span>}
           title="The game draws this battle with a green helmet."
           checked={site.side_quest === true}
-          onCheckedChange={(checked) => props.onChange({ ...site, side_quest: checked ? true : undefined })}
+          onCheckedChange={(checked) => props.onChange({ ...site, side_quest: checked ? true : undefined, strong_enemy: checked ? undefined : site.strong_enemy })}
         />
       </div>
 

@@ -62,6 +62,15 @@ describe('example map', () => {
     const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
     expect(problems).toEqual([]);
   });
+
+  it('reports a battle that is both a strong enemy and a side quest', () => {
+    const data = JSON.parse(readFileSync(join(root, 'examples', 'field-001.json'), 'utf8')) as { field: number; sites: { kind: string; quest_id: number; strong_enemy?: true; side_quest?: true }[] };
+    const battle = data.sites.find((site) => site.kind === 'battle')!;
+    battle.strong_enemy = true;
+    battle.side_quest = true;
+    const problems = checkFields([{ name: fieldFileName(data.field), data }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain(`quest ${battle.quest_id} is both a strong enemy and a side quest; a battle can only be one`);
+  });
 });
 
 describe('field links', () => {
