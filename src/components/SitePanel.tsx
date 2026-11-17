@@ -1,12 +1,35 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
+import { Button, Checkbox, CloseIcon, Combobox, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dffoogg/omnia-ui';
 import { MISSION_TYPES } from '@/lib/field/compile';
 import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
 import { KINDS, adjacentMoves, changeKind, clearHex, defaultReveal, extendMove, newSite, questHexes, siteAt, siteLabel, type HexAt, type Kind } from '@/lib/edit';
-import { SearchSelect, namedOptions, stageOptions, type Option } from './SearchSelect';
+import { namedOptions, stageOptions, type Option } from '@/lib/options';
+import styles from './SitePanel.module.css';
 
 type Battle = Extract<FieldSiteFile, { kind: 'battle' }>;
 type Placed = Extract<FieldSiteFile, { kind: 'cutscene' | 'battle' }>;
+
+const KIND_OPTIONS = KINDS.map(({ kind, label }) => ({ value: kind, label }));
+
+/** A short visible label with extra words for screen readers, e.g. "Level" read as "Level, enemy B". */
+function Label(props: { text: string; context: string }) {
+  return (
+    <>
+      {props.text}
+      <span className="omnia-sr-only">, {props.context}</span>
+    </>
+  );
+}
+
+function Group(props: { legend: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <fieldset className={props.className ? `${styles.group} ${props.className}` : styles.group}>
+      <legend className={styles.legend}>{props.legend}</legend>
+      {props.children}
+    </fieldset>
+  );
+}
 
 export function SitePanel(props: {
   file: FieldFile;
@@ -24,7 +47,7 @@ export function SitePanel(props: {
     summons: namedOptions(resources.summons),
     stages: stageOptions(resources.stages),
     talks: namedOptions(resources.talks),
-    items: resources.items.map((item) => ({ key: `${item.item_type}:${item.item_id}`, label: `${item.name} (${item.item_type}:${item.item_id})` })),
+    items: resources.items.map((item) => ({ value: `${item.item_type}:${item.item_id}`, label: `${item.name} (${item.item_type}:${item.item_id})` })),
   }), [resources]);
   const quests = useMemo(() => questOptions(file, resources.talks), [file, resources.talks]);
 
@@ -42,113 +65,121 @@ export function SitePanel(props: {
     });
     const kinds = file.sites.length ? KINDS : KINDS.filter(({ kind }) => kind === 'cutscene' || kind === 'battle');
     return (
-      <>
-        <strong>Hex {at[0]}, {at[1]}</strong>
-        <p>What is on this hex?</p>
-        <div className="kind-choices">
+      <div className={styles.panel}>
+        <header className={styles.header}>
+          <h2 className={styles.heading}>Hex {at[0]}, {at[1]}</h2>
+          <p className={styles.meta}>What is on this hex?</p>
+        </header>
+        <div className={styles.kinds}>
           {kinds.map(({ kind, label }) => (
-            <button key={kind} type="button" onClick={() => props.onChange({ ...file, sites: [...file.sites, newSite(file, kind, at)] })}>
+            <Button key={kind} onClick={() => props.onChange({ ...file, sites: [...file.sites, newSite(file, kind, at)] })}>
               {label}
-            </button>
+            </Button>
           ))}
         </div>
-        {file.sites.length === 0 && <p className="hint">The first site has to be the start, so it must be a cutscene or a battle.</p>}
+        {file.sites.length === 0 && <p className={styles.meta}>The first site has to be the start, so it must be a cutscene or a battle.</p>}
         {extendable.map((move) => {
           const strip = file.sites[move];
           if (strip.kind !== 'move') return null;
           return (
-            <button key={move} type="button" onClick={() => props.onChange(extendMove(file, move, at))}>
+            <Button key={move} variant="outline" block onClick={() => props.onChange(extendMove(file, move, at))}>
               Extend move from {strip.first_quest_id} (quest {strip.first_quest_id + strip.hexes.length})
-            </button>
+            </Button>
           );
         })}
-      </>
+      </div>
     );
   }
 
   const ownIds = site.kind === 'move'
     ? site.hexes.map((_, step) => site.first_quest_id + step)
     : [site.quest_id];
-  const revealOptions = quests.filter((option) => !ownIds.includes(Number(option.key)));
+  const revealOptions = quests.filter((option) => !ownIds.includes(Number(option.value)));
 
   const step = site.kind === 'move' ? Math.max(0, site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1])) : 0;
   const questId = site.kind === 'move' ? site.first_quest_id + step : site.quest_id;
 
   return (
-    <>
-      <strong>{siteLabel(file, index, resources.talks)}</strong>
-      <p className="hint">
-        Hex {at[0]}, {at[1]} · quest {questId}
-        {site.kind === 'move' ? `, step ${step + 1} of ${site.hexes.length}` : ''}
-      </p>
-      <label>
-        Type
-        <select value={site.kind} onChange={(event) => put(changeKind(file, site, event.target.value as Kind, at))}>
-          {KINDS.map(({ kind, label }) => <option key={kind} value={kind}>{label}</option>)}
-        </select>
-      </label>
+    <div className={styles.panel}>
+      <header className={styles.header}>
+        <h2 className={styles.heading}>{siteLabel(file, index, resources.talks)}</h2>
+        <p className={styles.meta}>
+          Hex {at[0]}, {at[1]} · quest {questId}
+          {site.kind === 'move' ? `, step ${step + 1} of ${site.hexes.length}` : ''}
+        </p>
+      </header>
 
-      {site.kind === 'move' ? (
-        <label>
-          First quest id ({site.hexes.length} hex{site.hexes.length === 1 ? '' : 'es'})
-          <input type="number" value={site.first_quest_id} onChange={(event) => put({ ...site, first_quest_id: Number(event.target.value) })} />
-        </label>
-      ) : (
-        <label>
-          Quest id
-          <input type="number" value={site.quest_id} onChange={(event) => put({ ...site, quest_id: Number(event.target.value) })} />
-        </label>
-      )}
+      <div className={styles.pair}>
+        <Select
+          label="Type"
+          options={KIND_OPTIONS}
+          value={site.kind}
+          onValueChange={(kind) => kind && put(changeKind(file, site, kind as Kind, at))}
+        />
+        {site.kind === 'move' ? (
+          <TextField
+            label="First quest id"
+            description={`${site.hexes.length} hex${site.hexes.length === 1 ? '' : 'es'}`}
+            type="number"
+            value={site.first_quest_id}
+            onChange={(event) => put({ ...site, first_quest_id: Number(event.target.value) })}
+          />
+        ) : (
+          <TextField
+            label="Quest id"
+            type="number"
+            value={site.quest_id}
+            onChange={(event) => put({ ...site, quest_id: Number(event.target.value) })}
+          />
+        )}
+      </div>
 
       {site.kind === 'cutscene' && (
-        <SearchSelect
+        <Combobox
           label="Cutscene"
+          description="The game shows the cutscene's title as its name."
           options={options.talks}
           value={site.before_talk ? String(site.before_talk) : null}
-          onChange={(key) => put({ ...site, before_talk: key === null ? 0 : Number(key) })}
-          allowNone
+          onValueChange={(key) => put({ ...site, before_talk: key === null ? 0 : Number(key) })}
+          clearable
           placeholder="Search cutscene titles"
         />
       )}
-      {site.kind === 'cutscene' && <p className="hint">The game shows the cutscene's title as its name.</p>}
 
       {site.kind === 'battle' && (
-        <label>
-          Name
-          <input value={site.name} onChange={(event) => put({ ...site, name: event.target.value })} />
-        </label>
+        <TextField label="Name" value={site.name} onChange={(event) => put({ ...site, name: event.target.value })} />
       )}
       {site.kind === 'treasure' && (
-        <label>
-          Name (optional)
-          <input value={site.name ?? ''} onChange={(event) => put({ ...site, name: event.target.value || undefined })} />
-        </label>
+        <TextField
+          label="Name"
+          description="Optional."
+          value={site.name ?? ''}
+          onChange={(event) => put({ ...site, name: event.target.value || undefined })}
+        />
       )}
 
       {(site.kind === 'cutscene' || site.kind === 'battle') && (
-        <div className="ends">
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={site.revealed_by === null}
-              disabled={site.revealed_by === null && defaultReveal(file, at) === null}
-              onChange={(event) => put({ ...site, revealed_by: event.target.checked ? null : defaultReveal(file, at) })}
-            />
-            Start
-          </label>
-          <label className="check">
-            <input type="checkbox" checked={site.goal === true} onChange={(event) => put({ ...site, goal: event.target.checked ? true : undefined })} />
-            Goal
-          </label>
+        <div className={styles.checks}>
+          <Checkbox
+            label="Start"
+            checked={site.revealed_by === null}
+            disabled={site.revealed_by === null && defaultReveal(file, at) === null}
+            onCheckedChange={(checked) => put({ ...site, revealed_by: checked ? null : defaultReveal(file, at) })}
+          />
+          <Checkbox
+            label="Goal"
+            checked={site.goal === true}
+            onCheckedChange={(checked) => put({ ...site, goal: checked ? true : undefined })}
+          />
         </div>
       )}
 
       {site.revealed_by !== null && (
-        <SearchSelect
+        <Combobox
           label="Revealed by"
           options={revealOptions}
           value={String(site.revealed_by)}
-          onChange={(key) => {
+          onValueChange={(key) => {
             if (key !== null) put({ ...site, revealed_by: Number(key) });
           }}
         />
@@ -170,18 +201,20 @@ export function SitePanel(props: {
         />
       )}
 
-      <div className="panel-actions">
-        <button type="button" onClick={() => props.onChange(clearHex(file, at))}>Delete</button>
+      <div className={styles.actions}>
+        <Button variant="danger" size="sm" startIcon={<TrashIcon size={16} />} onClick={() => props.onChange(clearHex(file, at))}>
+          Delete
+        </Button>
       </div>
-    </>
+    </div>
   );
 }
 
 function questOptions(file: FieldFile, talks: Resources['talks']): Option[] {
   return questHexes(file)
     .filter((row) => row.site >= 0)
-    .map((row) => ({ key: String(row.questId), label: `${row.questId} ${siteLabel(file, row.site, talks)} (${row.hex[0]}, ${row.hex[1]})` }))
-    .sort((a, b) => Number(a.key) - Number(b.key));
+    .map((row) => ({ value: String(row.questId), label: `${row.questId} ${siteLabel(file, row.site, talks)} (${row.hex[0]}, ${row.hex[1]})` }))
+    .sort((a, b) => Number(a.value) - Number(b.value));
 }
 
 interface PanelOptions {
@@ -200,30 +233,27 @@ function PlacedFields(props: { site: Placed; options: PanelOptions; onChange: (s
     <>
       {site.kind === 'cutscene' && (
         <>
-          <SearchSelect
+          <Combobox
             label="Character icon"
             options={props.options.characters}
             value={site.chara_icon === undefined ? null : String(site.chara_icon)}
-            allowNone
-            onChange={(key) => props.onChange({ ...site, chara_icon: optional(key), joins: key === null ? undefined : site.joins })}
+            clearable
+            onValueChange={(key) => props.onChange({ ...site, chara_icon: optional(key), joins: key === null ? undefined : site.joins })}
           />
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={site.joins === true}
-              disabled={site.chara_icon === undefined}
-              onChange={(event) => props.onChange({ ...site, joins: event.target.checked ? true : undefined })}
-            />
-            This character joins the party
-          </label>
+          <Checkbox
+            label="This character joins the party"
+            checked={site.joins === true}
+            disabled={site.chara_icon === undefined}
+            onCheckedChange={(checked) => props.onChange({ ...site, joins: checked ? true : undefined })}
+          />
         </>
       )}
-      <SearchSelect
+      <Combobox
         label="Grants summon"
         options={props.options.summons}
         value={site.grants_summon === undefined ? null : String(site.grants_summon)}
-        allowNone
-        onChange={(key) => props.onChange({ ...site, grants_summon: optional(key) })}
+        clearable
+        onValueChange={(key) => props.onChange({ ...site, grants_summon: optional(key) })}
       />
     </>
   );
@@ -247,10 +277,14 @@ function missionKind(mission: MissionFile): MissionKind {
   return 'use_ability';
 }
 
+/** Enemy slots are lettered A, B, C… within a wave, falling back to numbers past Z. */
+const slotName = (enemyIndex: number) => (enemyIndex < 26 ? String.fromCharCode(65 + enemyIndex) : String(enemyIndex + 1));
+
 function BattleFields(props: { site: Battle; resources: Resources; options: PanelOptions; onChange: (site: Battle) => void }) {
   const { site, resources } = props;
   const missionText = (type: number, fallback: string) =>
     (resources.missions.find((row) => row.id === type)?.name ?? fallback).replace('%d', 'N').replace('%s', '…');
+  const missionOptions = MISSION_KINDS.map((entry) => ({ value: entry.kind, label: missionText(entry.type, entry.fallback) }));
 
   function setWaves(waves: Battle['waves']) {
     props.onChange({ ...site, waves });
@@ -278,123 +312,145 @@ function BattleFields(props: { site: Battle; resources: Resources; options: Pane
 
   return (
     <>
-      <SearchSelect
+      <Combobox
         label="Stage"
         options={props.options.stages}
         value={site.stage_id === undefined ? null : String(site.stage_id)}
-        allowNone
-        onChange={(key) => props.onChange({ ...site, stage_id: key === null ? undefined : Number(key) })}
+        clearable
+        onValueChange={(key) => props.onChange({ ...site, stage_id: key === null ? undefined : Number(key) })}
       />
-      <label className="check">
-        <input type="checkbox" checked={site.strong_enemy === true} onChange={(event) => props.onChange({ ...site, strong_enemy: event.target.checked ? true : undefined })} />
-        Strong enemy (gold helmet)
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={site.side_quest === true} onChange={(event) => props.onChange({ ...site, side_quest: event.target.checked ? true : undefined })} />
-        Side quest (green helmet)
-      </label>
+      <div className={styles.checks}>
+        <Checkbox
+          label="Strong enemy (gold helmet)"
+          checked={site.strong_enemy === true}
+          onCheckedChange={(checked) => props.onChange({ ...site, strong_enemy: checked ? true : undefined })}
+        />
+        <Checkbox
+          label="Side quest (green helmet)"
+          checked={site.side_quest === true}
+          onCheckedChange={(checked) => props.onChange({ ...site, side_quest: checked ? true : undefined })}
+        />
+      </div>
 
-      <fieldset>
-        <legend>Waves</legend>
+      <Group legend="Waves">
         {site.waves.map((wave, waveIndex) => (
-          <div key={waveIndex} className="wave">
-            <span className="wave-title">
-              Wave {waveIndex + 1}
-              {site.waves.length > 1 && (
-                <button type="button" onClick={() => setWaves(site.waves.filter((_, i) => i !== waveIndex))}>Remove wave</button>
-              )}
-            </span>
+          <Group key={waveIndex} legend={`Wave ${waveIndex + 1}`} className={styles.wave}>
+            {site.waves.length > 1 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className={styles.waveRemove}
+                startIcon={<TrashIcon size={16} />}
+                onClick={() => setWaves(site.waves.filter((_, i) => i !== waveIndex))}
+              >
+                Remove wave<span className="omnia-sr-only"> {waveIndex + 1}</span>
+              </Button>
+            )}
             {wave.map((enemy, enemyIndex) => {
-              const slot = `${enemyIndex < 26 ? String.fromCharCode(65 + enemyIndex) : enemyIndex + 1} of ${wave.length}`;
+              const slot = slotName(enemyIndex);
               return (
-                <div key={enemyIndex} className="enemy">
-                  <SearchSelect
-                    label={slot}
-                    options={props.options.enemies}
+                <div key={enemyIndex} className={styles.enemy}>
+                  <Combobox
+                    label={<Label text={`Enemy ${slot}`} context={`wave ${waveIndex + 1}`} />}                    options={props.options.enemies}
                     value={String(enemy.enemy)}
-                    onChange={(key) => {
+                    onValueChange={(key) => {
                       if (key === null) return;
                       const waves = site.waves.map((row) => row.slice());
                       waves[waveIndex][enemyIndex] = { ...enemy, enemy: Number(key) };
                       setWaves(waves);
                     }}
                   />
-                  <label className="level">
-                    Lv
-                    <input
-                      type="number"
-                      min="1"
-                      value={enemy.level}
-                      onChange={(event) => {
-                        const waves = site.waves.map((row) => row.slice());
-                        waves[waveIndex][enemyIndex] = { ...enemy, level: Math.max(1, Number(event.target.value)) };
-                        setWaves(waves);
-                      }}
-                    />
-                  </label>
+                  <TextField
+                    label={<Label text="Level" context={`enemy ${slot}, wave ${waveIndex + 1}`} />}
+                    type="number"
+                    min="1"
+                    value={enemy.level}
+                    onChange={(event) => {
+                      const waves = site.waves.map((row) => row.slice());
+                      waves[waveIndex][enemyIndex] = { ...enemy, level: Math.max(1, Number(event.target.value)) };
+                      setWaves(waves);
+                    }}
+                  />
                   {wave.length > 1 && (
-                    <button
-                      type="button"
-                      aria-label={`Remove ${slot}`}
+                    <IconButton
+                      className={styles.rowRemove}
+                      label={`Remove enemy ${slot} from wave ${waveIndex + 1}`}
+                      icon={<CloseIcon size={16} />}
                       onClick={() => setWaves(site.waves.map((row, i) => (i === waveIndex ? row.filter((_, j) => j !== enemyIndex) : row)))}
-                    >
-                      ×
-                    </button>
+                    />
                   )}
                 </div>
               );
             })}
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="ghost"
+              className={styles.add}
+              startIcon={<PlusIcon size={16} />}
               onClick={() => setWaves(site.waves.map((row, i) => (i === waveIndex ? [...row, { ...row[row.length - 1] }] : row)))}
             >
-              Add enemy
-            </button>
-          </div>
+              Add enemy<span className="omnia-sr-only"> to wave {waveIndex + 1}</span>
+            </Button>
+          </Group>
         ))}
-        <button type="button" onClick={() => setWaves([...site.waves, [{ enemy: 1, level: 1 }]])}>Add wave</button>
-      </fieldset>
+        <Button size="sm" className={styles.add} startIcon={<PlusIcon size={16} />} onClick={() => setWaves([...site.waves, [{ enemy: 1, level: 1 }]])}>
+          Add wave
+        </Button>
+      </Group>
 
-      <label>
-        Goal score
-        <input type="number" min="0" value={site.goal_score} onChange={(event) => props.onChange({ ...site, goal_score: Number(event.target.value) })} />
-      </label>
-      <RewardEditor label="Score reward" reward={site.score_reward} items={props.options.items} onChange={(score_reward) => props.onChange({ ...site, score_reward })} />
+      <TextField
+        label="Goal score"
+        type="number"
+        min="0"
+        value={site.goal_score}
+        onChange={(event) => props.onChange({ ...site, goal_score: Number(event.target.value) })}
+      />
+      <Group legend="Score reward">
+        <RewardEditor reward={site.score_reward} items={props.options.items} context="score reward" onChange={(score_reward) => props.onChange({ ...site, score_reward })} />
+      </Group>
 
-      <fieldset>
-        <legend>Missions</legend>
+      <Group legend="Missions">
         {site.missions.map((mission, slot) => {
           const kind = missionKind(mission);
+          const name = `Mission ${slot + 1}`;
           return (
-            <div key={slot} className="mission">
-              <select value={kind} onChange={(event) => retype(slot, event.target.value as MissionKind)}>
-                {MISSION_KINDS.map((entry) => (
-                  <option key={entry.kind} value={entry.kind}>{missionText(entry.type, entry.fallback)}</option>
-                ))}
-              </select>
+            <div key={slot} className={styles.mission}>
+              <Select label={name} options={missionOptions} value={kind} onValueChange={(next) => next && retype(slot, next as MissionKind)} />
               {mission !== 'no_kos' && 'within_turns' in mission && (
-                <input type="number" min="1" aria-label="Turns" value={mission.within_turns} onChange={(event) => setMission(slot, { ...mission, within_turns: Math.max(1, Number(event.target.value)) })} />
+                <TextField
+                  label={<Label text="Turns" context={name.toLowerCase()} />}
+                  type="number"
+                  min="1"
+                  value={mission.within_turns}
+                  onChange={(event) => setMission(slot, { ...mission, within_turns: Math.max(1, Number(event.target.value)) })}
+                />
               )}
               {mission !== 'no_kos' && 'breaks' in mission && (
-                <input type="number" min="1" aria-label="Breaks" value={mission.breaks} onChange={(event) => setMission(slot, { ...mission, breaks: Math.max(1, Number(event.target.value)) })} />
+                <TextField
+                  label={<Label text="Breaks" context={name.toLowerCase()} />}
+                  type="number"
+                  min="1"
+                  value={mission.breaks}
+                  onChange={(event) => setMission(slot, { ...mission, breaks: Math.max(1, Number(event.target.value)) })}
+                />
               )}
               {mission !== 'no_kos' && 'in_party' in mission && (
-                <SearchSelect
-                  label="Character"
+                <Combobox
+                  label={<Label text="Character" context={name.toLowerCase()} />}
                   options={props.options.characters}
                   value={String(mission.in_party)}
-                  onChange={(key) => {
+                  onValueChange={(key) => {
                     const character = resources.characters.find((row) => String(row.id) === key);
                     if (character) setMission(slot, { ...mission, in_party: character.id, label: character.name });
                   }}
                 />
               )}
               {mission !== 'no_kos' && 'use_ability' in mission && (
-                <SearchSelect
-                  label="Ability"
+                <Combobox
+                  label={<Label text="Ability" context={name.toLowerCase()} />}
                   options={props.options.abilities}
                   value={String(mission.use_ability)}
-                  onChange={(key) => {
+                  onValueChange={(key) => {
                     const ability = resources.abilities.find((row) => String(row.id) === key);
                     if (ability) setMission(slot, { ...mission, use_ability: ability.id, label: ability.name });
                   }}
@@ -403,7 +459,7 @@ function BattleFields(props: { site: Battle; resources: Resources; options: Pane
             </div>
           );
         })}
-      </fieldset>
+      </Group>
 
       <RewardList
         label="First clear bonus"
@@ -416,13 +472,19 @@ function BattleFields(props: { site: Battle; resources: Resources; options: Pane
   );
 }
 
+const REWARD_KINDS = [
+  { value: 'gems', label: 'Gems' },
+  { value: 'gil', label: 'Gil' },
+  { value: 'item', label: 'Item' },
+];
+
 function rewardKind(reward: RewardFile): 'gems' | 'gil' | 'item' {
   if ('gems' in reward) return 'gems';
   if ('gil' in reward) return 'gil';
   return 'item';
 }
 
-function RewardEditor(props: { label: string; reward: RewardFile; items: Option[]; onChange: (reward: RewardFile) => void }) {
+function RewardEditor(props: { reward: RewardFile; items: Option[]; context: string; onChange: (reward: RewardFile) => void }) {
   const { reward } = props;
   const kind = rewardKind(reward);
   const amount = 'gems' in reward ? reward.gems : 'gil' in reward ? reward.gil : reward.num;
@@ -433,31 +495,34 @@ function RewardEditor(props: { label: string; reward: RewardFile; items: Option[
     else props.onChange({ ...reward, num: n });
   };
   return (
-    <div className="reward">
-      <span>{props.label}</span>
-      <select
+    <div className={styles.reward}>
+      <Select
+        label={<Label text="Kind" context={props.context} />}
+        options={REWARD_KINDS}
         value={kind}
-        onChange={(event) => {
-          const next = event.target.value;
+        onValueChange={(next) => {
           if (next === 'gems') props.onChange({ gems: amount });
           else if (next === 'gil') props.onChange({ gil: amount });
-          else {
-            const [type, id] = (props.items[0]?.key ?? '11:2').split(':').map(Number);
+          else if (next === 'item') {
+            const [type, id] = (props.items[0]?.value ?? '11:2').split(':').map(Number);
             props.onChange({ item_type: type, item_id: id, num: amount });
           }
         }}
-      >
-        <option value="gems">Gems</option>
-        <option value="gil">Gil</option>
-        <option value="item">Item</option>
-      </select>
-      <input type="number" min="1" aria-label={`${props.label} amount`} value={amount} onChange={(event) => setAmount(Number(event.target.value))} />
+      />
+      <TextField
+        label={<Label text="Amount" context={props.context} />}
+        type="number"
+        min="1"
+        value={amount}
+        onChange={(event) => setAmount(Number(event.target.value))}
+      />
       {kind === 'item' && 'item_type' in reward && (
-        <SearchSelect
-          label="Item"
+        <Combobox
+          label={<Label text="Item" context={props.context} />}
+          className={styles.rewardItem}
           options={props.items}
           value={`${reward.item_type}:${reward.item_id}`}
-          onChange={(key) => {
+          onValueChange={(key) => {
             if (key === null) return;
             const [type, id] = key.split(':').map(Number);
             props.onChange({ ...reward, item_type: type, item_id: id });
@@ -470,22 +535,32 @@ function RewardEditor(props: { label: string; reward: RewardFile; items: Option[
 
 function RewardList(props: { label: string; rewards: RewardFile[]; items: Option[]; minimum: number; onChange: (rewards: RewardFile[]) => void }) {
   return (
-    <fieldset>
-      <legend>{props.label}</legend>
+    <Group legend={props.label}>
+      {props.rewards.length === 0 && <p className={styles.meta}>None.</p>}
       {props.rewards.map((reward, index) => (
-        <div key={index} className="reward-row">
+        <Group key={index} legend={`Reward ${index + 1}`} className={styles.wave}>
+          {props.rewards.length > props.minimum && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className={styles.waveRemove}
+              startIcon={<TrashIcon size={16} />}
+              onClick={() => props.onChange(props.rewards.filter((_, i) => i !== index))}
+            >
+              Remove reward<span className="omnia-sr-only"> {index + 1}</span>
+            </Button>
+          )}
           <RewardEditor
-            label={`#${index + 1}`}
             reward={reward}
             items={props.items}
+            context={`${props.label.toLowerCase()} reward ${index + 1}`}
             onChange={(next) => props.onChange(props.rewards.map((row, i) => (i === index ? next : row)))}
           />
-          {props.rewards.length > props.minimum && (
-            <button type="button" aria-label="Remove reward" onClick={() => props.onChange(props.rewards.filter((_, i) => i !== index))}>×</button>
-          )}
-        </div>
+        </Group>
       ))}
-      <button type="button" onClick={() => props.onChange([...props.rewards, { gil: 1000 }])}>Add reward</button>
-    </fieldset>
+      <Button size="sm" variant="ghost" className={styles.add} startIcon={<PlusIcon size={16} />} onClick={() => props.onChange([...props.rewards, { gil: 1000 }])}>
+        Add reward
+      </Button>
+    </Group>
   );
 }

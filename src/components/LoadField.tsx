@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { Button, Callout, Dialog, DialogClose, TextArea, UploadIcon } from '@dffoogg/omnia-ui';
 import { fieldFileSchema, type FieldFile } from '@/lib/field/schema';
 import { decodeField, linkToken } from '@/lib/share';
+import styles from './Editor.module.css';
 
 type Read = { file: FieldFile } | { errors: string[] };
 
@@ -32,22 +34,30 @@ export async function readLink(token: string): Promise<Read> {
   }
 }
 
-export function LoadField(props: { onOpen: (file: FieldFile) => void; onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
+export function LoadField(props: { open: boolean; onOpenChange: (open: boolean) => void; onOpen: (file: FieldFile) => void }) {
+  const fileInput = useRef<HTMLInputElement>(null);
   const [link, setLink] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
+  function openChange(open: boolean) {
+    if (!open) {
+      setLink('');
+      setErrors([]);
+    }
+    props.onOpenChange(open);
+  }
 
   async function finish(read: Promise<Read>) {
     setBusy(true);
     const result = await read;
     setBusy(false);
     if ('errors' in result) setErrors(result.errors);
-    else props.onOpen(result.file);
+    else {
+      setLink('');
+      setErrors([]);
+      props.onOpen(result.file);
+    }
   }
 
   function loadLink() {
@@ -60,14 +70,31 @@ export function LoadField(props: { onOpen: (file: FieldFile) => void; onClose: (
   }
 
   return (
-    <dialog ref={dialog} className="load-field" onClose={props.onClose}>
-      <h2>Load a field</h2>
-      <label>
-        Field link
-        <textarea
+    <Dialog
+      open={props.open}
+      onOpenChange={openChange}
+      title="Load a field"
+      description="Paste a field link, or choose a field JSON file."
+      actions={
+        <>
+          <Button className={styles.footerStart} startIcon={<UploadIcon size={16} />} onClick={() => fileInput.current?.click()}>
+            Choose JSON file…
+          </Button>
+          <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+          <Button variant="primary" loading={busy} disabled={!link.trim()} onClick={loadLink}>
+            Load link
+          </Button>
+        </>
+      }
+    >
+      <div className={styles.dialogBody}>
+        <TextArea
+          label="Field link"
+          description="Enter loads the link; Shift+Enter adds a new line."
           autoFocus
           value={link}
           placeholder="https://dffoogg.github.io/field-editor/#f=v1.…"
+          className={styles.linkInput}
           onChange={(event) => {
             setLink(event.target.value);
             setErrors([]);
@@ -79,27 +106,27 @@ export function LoadField(props: { onOpen: (file: FieldFile) => void; onClose: (
             }
           }}
         />
-      </label>
-      <div className="start-actions">
-        <label className="button">
-          Choose JSON file…
-          <input
-            type="file"
-            accept=".json,application/json"
-            hidden
-            onChange={(event) => {
-              const upload = event.target.files?.[0];
-              event.target.value = '';
-              if (upload) void finish(readField(upload));
-            }}
-          />
-        </label>
-        <span className="load-actions">
-          <button type="button" onClick={() => dialog.current?.close()}>Cancel</button>
-          <button type="button" disabled={busy || !link.trim()} onClick={loadLink}>Load link</button>
-        </span>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(event) => {
+            const upload = event.target.files?.[0];
+            event.target.value = '';
+            if (upload) void finish(readField(upload));
+          }}
+        />
+        {errors.length > 0 && (
+          <Callout tone="danger" role="alert" title="This field could not be loaded">
+            <ul className={styles.errorList}>
+              {errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </Callout>
+        )}
       </div>
-      {errors.length > 0 && <p className="load-errors">{errors.join(' · ')}</p>}
-    </dialog>
+    </Dialog>
   );
 }

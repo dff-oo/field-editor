@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   basePath,
   env: { NEXT_PUBLIC_BASE_PATH: basePath },
   agentRules: false,
+  /** Omnia UI ships TypeScript and CSS Modules source. */
+  transpilePackages: ['@dffoogg/omnia-ui'],
 };
 
 export default nextConfig;

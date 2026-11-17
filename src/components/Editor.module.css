@@ -1,0 +1,335 @@
+.app {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100dvh;
+}
+
+/* Toolbar ----------------------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--omnia-space-2) var(--omnia-space-5);
+  padding: var(--omnia-space-2) var(--omnia-space-4);
+  border-bottom: 1px solid var(--omnia-border);
+  background: var(--omnia-surface-1);
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--omnia-space-2);
+  min-width: 0;
+}
+
+.titleIcon {
+  align-self: center;
+  color: var(--omnia-accent);
+}
+
+.titleText {
+  font-size: var(--omnia-text-body);
+  white-space: nowrap;
+}
+
+.fieldName {
+  overflow: hidden;
+  color: var(--omnia-fg-muted);
+  font-size: var(--omnia-text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--omnia-space-2) var(--omnia-space-4);
+}
+
+.theme {
+  margin-inline-start: auto;
+}
+
+/* Start ------------------------------------------------------------------- */
+
+.start {
+  display: grid;
+  place-items: center;
+  padding: var(--omnia-space-8) var(--omnia-gutter);
+  overflow: auto;
+}
+
+.startCard {
+  width: min(100%, 480px);
+}
+
+/* Workspace ---------------------------------------------------------------- */
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  min-height: 0;
+}
+
+.workspace[data-sidebar="closed"] {
+  grid-template-columns: minmax(0, 1fr) 56px;
+}
+
+.inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-4);
+  min-height: 0;
+  padding: var(--omnia-space-3) var(--omnia-space-4) var(--omnia-space-6);
+  overflow: auto;
+  border-inline-start: 1px solid var(--omnia-border);
+  background: var(--omnia-surface-1);
+}
+
+.workspace[data-sidebar="closed"] .inspector {
+  align-items: center;
+  padding-inline: var(--omnia-space-2);
+  overflow: hidden;
+}
+
+.sidebarToggle {
+  align-self: flex-end;
+}
+
+.workspace[data-sidebar="closed"] .sidebarToggle {
+  align-self: center;
+}
+
+.hint {
+  color: var(--omnia-fg-muted);
+  font-size: var(--omnia-text-small);
+}
+
+@media (max-width: 760px) {
+  .workspace,
+  .workspace[data-sidebar="closed"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(240px, 1fr) auto;
+    overflow: auto;
+  }
+
+  .inspector {
+    overflow: visible;
+    border-inline-start: 0;
+    border-top: 1px solid var(--omnia-border);
+  }
+}
+
+/* Status bar --------------------------------------------------------------- */
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--omnia-space-2);
+  min-height: 40px;
+  max-height: 30dvh;
+  padding: var(--omnia-space-2) var(--omnia-space-4);
+  overflow: auto;
+  border-top: 1px solid var(--omnia-border);
+  background: var(--omnia-surface-1);
+  color: var(--omnia-fg-muted);
+  font-size: var(--omnia-text-small);
+}
+
+.statusIcon {
+  flex: none;
+  margin-top: 3px;
+}
+
+.status[data-tone="ok"] {
+  color: var(--omnia-success);
+}
+
+.status[data-tone="warning"] {
+  color: var(--omnia-warning);
+}
+
+.status[data-tone="danger"] {
+  color: var(--omnia-danger);
+}
+
+/* Dialogs ------------------------------------------------------------------ */
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-4);
+}
+
+.linkInput textarea {
+  word-break: break-all;
+}
+
+.errorList {
+  margin: 0;
+  padding-inline-start: var(--omnia-space-5);
+}
+
+.footerStart {
+  margin-inline-end: auto;
+}
+
+/* Map ---------------------------------------------------------------------- */
+
+.map {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+
+.map svg {
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.hex {
+  stroke: var(--omnia-surface-3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.empty {
+  fill: var(--omnia-surface-1);
+}
+
+.empty:hover {
+  fill: var(--omnia-surface-2);
+}
+
+.hasOverlay .empty {
+  fill: transparent;
+  stroke: color-mix(in oklab, var(--omnia-fg) 55%, transparent);
+}
+
+.hasOverlay .empty:hover {
+  fill: color-mix(in oklab, var(--omnia-fg) 12%, transparent);
+}
+
+/* Site colours are data, not theme: they match what players recognise on the map. */
+.kindCutscene { fill: #e040fb; stroke: #f8bbff; }
+.kindBattle { fill: #ff1744; stroke: #ff9aa8; }
+.kindTreasure { fill: #ffea00; stroke: #fff9a8; }
+.kindMove { fill: #18ffff; stroke: #c4ffff; }
+.kindPortal { fill: #ffffff; stroke: #ffffff; pointer-events: none; }
+
+.map svg .hex:not(.empty) {
+  fill-opacity: 0.6;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 90%));
+}
+
+.hasOverlay svg .hex:not(.empty) {
+  fill-opacity: 0.55;
+}
+
+.map svg .hex.kindTreasure {
+  fill-opacity: 0.85;
+}
+
+.reveal {
+  fill: none;
+  stroke: #ffffff;
+  stroke-opacity: 0.75;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 1px #000000);
+  pointer-events: none;
+}
+
+.revealHead {
+  fill: #ffffff;
+  fill-opacity: 0.85;
+}
+
+.step,
+.marker {
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  pointer-events: none;
+}
+
+.step {
+  font: 900 52px var(--omnia-font-sans);
+  fill: #042428;
+  stroke: #ffffff;
+  stroke-width: 6px;
+}
+
+.marker {
+  font: 900 88px var(--omnia-font-sans);
+  fill: #ffffff;
+  stroke: #000000;
+  stroke-width: 8px;
+}
+
+.map svg .outline {
+  fill: none;
+  pointer-events: none;
+}
+
+.map svg .sameSite {
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+}
+
+.map svg .selected {
+  stroke: var(--omnia-focus);
+  stroke-width: 5;
+  stroke-dasharray: none;
+}
+
+.legend {
+  position: absolute;
+  bottom: var(--omnia-space-3);
+  left: var(--omnia-space-3);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--omnia-space-1) var(--omnia-space-4);
+  max-width: min(300px, calc(100% - 2 * var(--omnia-space-3)));
+  padding: var(--omnia-space-2) var(--omnia-space-3);
+  border: 1px solid var(--omnia-border);
+  border-radius: var(--omnia-radius-xs);
+  background: color-mix(in oklab, var(--omnia-canvas) 88%, transparent);
+  font-size: var(--omnia-text-small);
+  pointer-events: none;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: var(--omnia-space-2);
+}
+
+.legend svg {
+  width: 16px;
+  height: 18px;
+}
+
+.legend .hex {
+  fill-opacity: 1;
+  stroke-width: 1;
+  filter: none;
+  cursor: default;
+}
+
+.legend b {
+  font-weight: 900;
+}
+
+@media (forced-colors: active) {
+  .hex {
+    forced-color-adjust: none;
+  }
+}

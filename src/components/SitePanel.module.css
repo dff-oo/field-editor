@@ -1,0 +1,125 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-4);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-1);
+}
+
+.heading {
+  font-size: var(--omnia-text-lead);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  color: var(--omnia-fg-muted);
+  font-size: var(--omnia-text-small);
+}
+
+.kinds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--omnia-space-2);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--omnia-space-3);
+  align-items: start;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--omnia-space-1) var(--omnia-space-5);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-3);
+  min-width: 0;
+  margin: 0;
+  padding: var(--omnia-space-3);
+  border: 1px solid var(--omnia-border);
+  border-radius: var(--omnia-radius-sm);
+}
+
+.legend {
+  padding-inline: var(--omnia-space-1);
+  font-size: var(--omnia-text-small);
+  font-weight: var(--omnia-weight-semibold);
+}
+
+/* A nested group (one wave, one reward) sits on a tinted surface instead of a second border. */
+.wave {
+  position: relative;
+  border-color: transparent;
+  background: var(--omnia-surface-2);
+}
+
+/* A floated legend stops being the fieldset's rendered legend and lays out as the first flex item. */
+.wave > .legend {
+  float: left;
+  padding: 0;
+  line-height: var(--omnia-control-sm);
+}
+
+.waveRemove {
+  position: absolute;
+  top: var(--omnia-space-2);
+  right: var(--omnia-space-2);
+}
+
+.enemy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px auto;
+  gap: var(--omnia-space-2);
+  align-items: end;
+}
+
+.enemy:has(> :nth-child(2):last-child) {
+  grid-template-columns: minmax(0, 1fr) 84px;
+}
+
+.rowRemove {
+  margin-bottom: 2px;
+}
+
+.add {
+  align-self: flex-start;
+}
+
+.mission {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-2);
+}
+
+.mission + .mission {
+  padding-top: var(--omnia-space-3);
+  border-top: 1px dashed var(--omnia-border);
+}
+
+.reward {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: var(--omnia-space-2);
+  align-items: start;
+}
+
+.rewardItem {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--omnia-space-3);
+  border-top: 1px solid var(--omnia-border);
+}
