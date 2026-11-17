@@ -285,6 +285,7 @@ export function Editor() {
 
   function closeInspector() {
     setAt(null);
+    setCursor(null);
     mapRef.current?.querySelector('svg')?.focus();
   }
 
@@ -732,20 +733,6 @@ export function Editor() {
               {file.sites.flatMap((site) => site.kind === 'move' ? site.hexes : [])
                 .filter((hex) => !file.portal || !sameHex(hex, file.portal.hex))
                 .map(([x, y]) => <polygon key={`move-${x}-${y}`} points={hexOutline(x, y)} className={styles.moveCell} />)}
-              {at && (() => {
-                const { cx, cy } = hexPixel(at[0], at[1]);
-                return (
-                  <image
-                    href={gameIconSrc('hex-selected')}
-                    x={cx - FRAME_CENTRE_X}
-                    y={cy - FRAME_CENTRE_Y}
-                    width={FRAME_WIDTH}
-                    height={FRAME_HEIGHT}
-                    preserveAspectRatio="none"
-                    className={styles.eventFrame}
-                  />
-                );
-              })()}
               {file.portal && (() => {
                 const { cx, cy } = hexPixel(file.portal.hex[0], file.portal.hex[1]);
                 return (
@@ -799,7 +786,7 @@ export function Editor() {
               })}
               {selectedSite >= 0 &&
                 questHexes(file)
-                  .filter((row) => row.site === selectedSite)
+                  .filter((row) => row.site === selectedSite && !(at && sameHex(row.hex, at)))
                   .map(({ hex: [x, y] }) => (
                     <polygon key={`outline-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.sameSite)} />
                   ))}
@@ -809,8 +796,25 @@ export function Editor() {
               {links.revealer && (
                 <polygon points={hexOutline(links.revealer[0], links.revealer[1])} className={hexClass(styles.outline, styles.revealer)} />
               )}
-              {cursor && <polygon points={hexOutline(cursor[0], cursor[1])} className={hexClass(styles.outline, styles.cursor)} />}
-              {hover && <polygon points={hexOutline(hover[0], hover[1])} className={hexClass(styles.outline, styles.hover)} />}
+              {cursor && !(at && sameHex(cursor, at)) && (
+                <polygon points={hexOutline(cursor[0], cursor[1])} className={hexClass(styles.outline, styles.cursor)} />
+              )}
+              {[hover, at].map((hex, index) => {
+                if (!hex || (index === 0 && at && sameHex(hex, at))) return null;
+                const { cx, cy } = hexPixel(hex[0], hex[1]);
+                return (
+                  <image
+                    key={index === 0 ? 'hover' : 'selected'}
+                    href={gameIconSrc('hex-selected')}
+                    x={cx - FRAME_CENTRE_X}
+                    y={cy - FRAME_CENTRE_Y}
+                    width={FRAME_WIDTH}
+                    height={FRAME_HEIGHT}
+                    preserveAspectRatio="none"
+                    className={styles.eventFrame}
+                  />
+                );
+              })}
             </svg>
           </div>
           <div className={styles.legend}>
