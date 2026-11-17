@@ -1,5 +1,6 @@
 node_modules/
 public/field.schema.json
+public/characters/
 .next/
 out/
 next-env.d.ts

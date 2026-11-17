@@ -11,8 +11,13 @@ export interface Stage extends Named {
   notes?: string;
 }
 
+export interface Character extends Named {
+  /** Names the head image, public/characters/<image_id>.png. */
+  image_id?: number;
+}
+
 export interface Resources {
-  characters: Named[];
+  characters: Character[];
   enemies: Named[];
   abilities: (Named & { description?: string })[];
   items: { item_type: number; item_id: number; name: string }[];

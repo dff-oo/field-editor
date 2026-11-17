@@ -28,7 +28,7 @@ import {
   ZoomOutIcon,
 } from '@dffoogg/omnia-ui';
 import { fieldMapFor } from '@/lib/field-map';
-import { siteIcon } from '@/lib/game-icons';
+import { characterImageSrc, siteIcon } from '@/lib/game-icons';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';
 import { checkFields, type NameTables } from '@/lib/field/check';
 import { HEX_EVEN_COLUMN_SHIFT, HEX_HALF_HEIGHT, HEX_HALF_WIDTH, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
@@ -49,6 +49,8 @@ const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
+const JOIN_BUBBLE_SIZE = 72;
+const JOIN_FACE_SIZE = 84;
 
 const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
@@ -86,7 +88,6 @@ interface Box {
 const hexClass = (...names: (string | false | undefined)[]) => [styles.hex, ...names].filter(Boolean).join(' ');
 
 const sameHex = (a: HexAt, b: HexAt) => a[0] === b[0] && a[1] === b[1];
-
 /** The hexes that appear together when the quest at `at` is cleared, and the hex whose clear made `at` appear. */
 function revealLinks(file: FieldFile, at: HexAt | null): { reveals: HexAt[]; revealer: HexAt | null } {
   if (!at) return { reveals: [], revealer: null };
@@ -236,6 +237,7 @@ export function Editor() {
   );
 
   const savable = useMemo(() => (file ? fieldFileSchema.safeParse(file).success : false), [file]);
+  const characters = useMemo(() => new Map(resources.characters.map((character) => [character.id, character])), [resources.characters]);
   const saveProblems = [
     ...problems.map((problem) => problem.message),
     ...(file && !savable ? ['This file does not match the field schema.'] : []),
@@ -665,6 +667,18 @@ export function Editor() {
                 moveCursor(step, columns, rows);
               }}
             >
+              <defs>
+                <radialGradient id="event-fill">
+                  <stop offset="0%" className={styles.eventFillCentre} />
+                  <stop offset="60%" className={styles.eventFillMiddle} />
+                  <stop offset="100%" className={styles.eventFillEdge} />
+                </radialGradient>
+                <radialGradient id="move-fill">
+                  <stop offset="0%" className={styles.moveFillCentre} />
+                  <stop offset="60%" className={styles.moveFillMiddle} />
+                  <stop offset="100%" className={styles.moveFillEdge} />
+                </radialGradient>
+              </defs>
               {fieldMap && image && showImage && (
                 <image
                   href={fieldMap.url}
@@ -682,7 +696,7 @@ export function Editor() {
                 if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
                 const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
-                const tint = (occupied >= 0 && file.sites[occupied].kind !== 'move') || portalHere ? styles.tintEvent : undefined;
+                const tint = undefined;
                 const tip = occupied >= 0
                   ? hexTip(file, [x, y], resources.talks)
                   : portalHere
@@ -716,6 +730,7 @@ export function Editor() {
                 const occupied = siteAt(file, [x, y]);
                 const event = Boolean(portalHere) || (occupied >= 0 && file.sites[occupied].kind !== 'move');
                 if (event !== eventPass) return null;
+                if (event) return <polygon key={`event-${x}-${y}`} points={hexOutline(x, y)} className={styles.eventCell} />;
                 const { cx, cy } = hexPixel(x, y);
                 return (
                   <image
@@ -752,16 +767,41 @@ export function Editor() {
                 const icon = siteIcon(site);
                 if (!icon || site.kind === 'move') return null;
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
+                const joining = site.kind === 'cutscene' && site.joins && site.chara_icon
+                  ? characters.get(site.chara_icon)
+                  : undefined;
+                if (joining?.image_id === undefined) {
+                  return (
+                    <image
+                      key={`sprite-${index}`}
+                      href={gameIconSrc(icon)}
+                      x={cx - SPRITE_SIZE / 2}
+                      y={cy - SPRITE_SIZE / 2}
+                      width={SPRITE_SIZE}
+                      height={SPRITE_SIZE}
+                      className={styles.sprite}
+                    />
+                  );
+                }
                 return (
-                  <image
-                    key={`sprite-${index}`}
-                    href={gameIconSrc(icon)}
-                    x={cx - SPRITE_SIZE / 2}
-                    y={cy - SPRITE_SIZE / 2}
-                    width={SPRITE_SIZE}
-                    height={SPRITE_SIZE}
-                    className={styles.sprite}
-                  />
+                  <g key={`sprite-${index}`} className={styles.sprite}>
+                    <image
+                      href={gameIconSrc(icon)}
+                      x={cx - JOIN_BUBBLE_SIZE + 6}
+                      y={cy - JOIN_BUBBLE_SIZE / 2}
+                      width={JOIN_BUBBLE_SIZE}
+                      height={JOIN_BUBBLE_SIZE}
+                    />
+                    <image
+                      href={characterImageSrc(joining.image_id)}
+                      x={cx - 2}
+                      y={cy - JOIN_FACE_SIZE / 2}
+                      width={JOIN_FACE_SIZE}
+                      height={JOIN_FACE_SIZE}
+                    >
+                      <title>{`${joining.name} joins the party`}</title>
+                    </image>
+                  </g>
                 );
               })}
               {file.sites.flatMap((site, index) => {
@@ -790,10 +830,12 @@ export function Editor() {
                   .map(({ hex: [x, y] }) => (
                     <polygon key={`outline-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.sameSite)} />
                   ))}
-              {links.reveals.map(([x, y]) => (
-                <polygon key={`reveals-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.reveals)} />
-              ))}
-              {links.revealer && (
+              {links.reveals
+                .filter((hex) => !(at && sameHex(hex, at)))
+                .map(([x, y]) => (
+                  <polygon key={`reveals-${x}-${y}`} points={hexOutline(x, y)} className={hexClass(styles.outline, styles.reveals)} />
+                ))}
+              {links.revealer && !(at && sameHex(links.revealer, at)) && (
                 <polygon points={hexOutline(links.revealer[0], links.revealer[1])} className={hexClass(styles.outline, styles.revealer)} />
               )}
               {cursor && !(at && sameHex(cursor, at)) && (
