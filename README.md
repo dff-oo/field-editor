@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open the page Next prints (port 3000). **New** starts an empty map, **Load** opens a pasted field link or a field JSON file, and **Save as…** writes one. **Copy link** copies a link that opens this field. The editor does not write into this repo. [examples/field-001.json](examples/field-001.json) is Chapter 1 and can be loaded as a starting point. A file the game server should serve is copied, by hand, into that server's `fields/`. The schema is [field.schema.json](https://dffoogg.github.io/field-editor/field.schema.json), written into `public/` by `predev` and `prebuild`.
+Open the page Next prints (port 3000). **New** starts an empty map, **Load** opens a pasted field link or a field JSON file, and **Save** shares a link to the field or downloads the JSON. The editor does not write into this repo. [examples/field-001.json](examples/field-001.json) is Chapter 1 and can be loaded as a starting point. A file the game server should serve is copied, by hand, into that server's `fields/`. The schema is [field.schema.json](https://dffoogg.github.io/field-editor/field.schema.json), written into `public/` by `predev` and `prebuild`.
 
 See [docs/contributing-content.md](docs/contributing-content.md) for how a file is put together.
 

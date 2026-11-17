@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
-import { Button, Checkbox, CloseIcon, Combobox, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dffoogg/omnia-ui';
+import { Button, Checkbox, CloseIcon, Combobox, GameIcon, IconButton, PlusIcon, Select, TextField, TrashIcon, type GameIconName } from '@dffoogg/omnia-ui';
 import { MISSION_TYPES } from '@/lib/field/compile';
 import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
@@ -36,6 +36,7 @@ export function SitePanel(props: {
   at: HexAt;
   resources: Resources;
   onChange: (file: FieldFile) => void;
+  onClose: () => void;
 }) {
   const { file, at, resources } = props;
   const index = siteAt(file, at);
@@ -67,12 +68,17 @@ export function SitePanel(props: {
     return (
       <div className={styles.panel}>
         <header className={styles.header}>
-          <h2 className={styles.heading}>Hex {at[0]}, {at[1]}</h2>
-          <p className={styles.meta}>What is on this hex?</p>
+          <div className={styles.headerRow}>
+            <div>
+              <h2 className={styles.heading}>Hex {at[0]}, {at[1]}</h2>
+              <p className={styles.meta}>What is on this hex?</p>
+            </div>
+            <IconButton label="Close inspector" icon={<CloseIcon size={16} />} onClick={props.onClose} />
+          </div>
         </header>
         <div className={styles.kinds}>
           {kinds.map(({ kind, label }) => (
-            <Button key={kind} onClick={() => props.onChange({ ...file, sites: [...file.sites, newSite(file, kind, at)] })}>
+            <Button key={kind} startIcon={<GameIcon name={kind as GameIconName} size={20} />} onClick={() => props.onChange({ ...file, sites: [...file.sites, newSite(file, kind, at)] })}>
               {label}
             </Button>
           ))}
@@ -102,11 +108,16 @@ export function SitePanel(props: {
   return (
     <div className={styles.panel}>
       <header className={styles.header}>
-        <h2 className={styles.heading}>{siteLabel(file, index, resources.talks)}</h2>
-        <p className={styles.meta}>
-          Hex {at[0]}, {at[1]} · quest {questId}
-          {site.kind === 'move' ? `, step ${step + 1} of ${site.hexes.length}` : ''}
-        </p>
+        <div className={styles.headerRow}>
+          <div>
+            <h2 className={styles.heading}>{siteLabel(file, index, resources.talks)}</h2>
+            <p className={styles.meta}>
+              Hex {at[0]}, {at[1]} · quest {questId}
+              {site.kind === 'move' ? `, step ${step + 1} of ${site.hexes.length}` : ''}
+            </p>
+          </div>
+          <IconButton label="Close inspector" icon={<CloseIcon size={16} />} onClick={props.onClose} />
+        </div>
       </header>
 
       <div className={styles.pair}>
@@ -321,12 +332,14 @@ function BattleFields(props: { site: Battle; resources: Resources; options: Pane
       />
       <div className={styles.checks}>
         <Checkbox
-          label="Strong enemy (gold helmet)"
+          label="Strong enemy"
+          title="The game draws this battle with a gold helmet."
           checked={site.strong_enemy === true}
           onCheckedChange={(checked) => props.onChange({ ...site, strong_enemy: checked ? true : undefined })}
         />
         <Checkbox
-          label="Side quest (green helmet)"
+          label="Side quest"
+          title="The game draws this battle with a green helmet."
           checked={site.side_quest === true}
           onCheckedChange={(checked) => props.onChange({ ...site, side_quest: checked ? true : undefined })}
         />

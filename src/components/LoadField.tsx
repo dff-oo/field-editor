@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Callout, Dialog, DialogClose, TextArea, UploadIcon } from '@dffoogg/omnia-ui';
 import { fieldFileSchema, type FieldFile } from '@/lib/field/schema';
 import { decodeField, linkToken } from '@/lib/share';
@@ -34,11 +34,21 @@ export async function readLink(token: string): Promise<Read> {
   }
 }
 
-export function LoadField(props: { open: boolean; onOpenChange: (open: boolean) => void; onOpen: (file: FieldFile) => void }) {
+export function LoadField(props: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onOpen: (file: FieldFile) => void;
+  /** Errors from a link in the address bar, shown when the dialog opens. */
+  notice?: string[];
+}) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [link, setLink] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (props.open && props.notice && props.notice.length > 0) setErrors(props.notice);
+  }, [props.open, props.notice]);
 
   function openChange(open: boolean) {
     if (!open) {
