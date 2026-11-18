@@ -72,7 +72,6 @@ const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'helmet-gold', label: 'Strong enemy' },
   { icon: 'helmet-green', label: 'Side quest' },
   { icon: 'treasure', label: 'Treasure' },
-  { icon: 'portal', label: 'Portal' },
   { icon: 'gate' as GameIconName, label: 'Gate' },
 ];
 
@@ -107,7 +106,6 @@ function revealLinks(file: FieldFile, at: HexAt | null): { reveals: HexAt[]; rev
 
 /** What the hover readout says about a hex. */
 function hoverText(file: FieldFile, at: HexAt, talks: Resources['talks']): string {
-  if (file.portal && file.portal.hex[0] === at[0] && file.portal.hex[1] === at[1]) return `Quest ${file.portal.quest_id} · Portal`;
   const tip = hexTip(file, at, talks);
   if (!tip) return 'Empty';
   const { reveals } = revealLinks(file, at);
@@ -162,7 +160,6 @@ function clampZoom(width: number): number {
 /** A view that frames every site, or the painting when the field is empty. */
 function fitCamera(file: FieldFile, image: Box | null, aspect: number): Camera {
   const points = questHexes(file).map((row) => hexPixel(row.hex[0], row.hex[1]));
-  if (file.portal) points.push(hexPixel(file.portal.hex[0], file.portal.hex[1]));
   const box: Box = points.length
     ? (() => {
         const pad = HEX_STEP_X;
@@ -185,11 +182,10 @@ function problemHex(file: FieldFile, message: string): HexAt | null {
     const row = file.sites[Number(site[1])];
     if (row) return row.kind === 'move' ? row.hexes[0] : row.hex;
   }
-  const match = /(?:quest|cutscene|portal) (\d+)/i.exec(message);
+  const match = /(?:quest|cutscene) (\d+)/i.exec(message);
   if (!match) return null;
   const questId = Number(match[1]);
-  return questHexes(file).find((row) => row.questId === questId)?.hex
-    ?? (file.portal?.quest_id === questId ? file.portal.hex : null);
+  return questHexes(file).find((row) => row.questId === questId)?.hex ?? null;
 }
 
 export function Editor() {
@@ -707,13 +703,8 @@ export function Editor() {
                 const y = Math.floor(index / columns);
                 if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
-                const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
                 const tint = undefined;
-                const tip = occupied >= 0
-                  ? hexTip(file, [x, y], resources.talks)
-                  : portalHere
-                    ? `Quest ${file.portal?.quest_id} · Portal`
-                    : null;
+                const tip = occupied >= 0 ? hexTip(file, [x, y], resources.talks) : null;
                 return (
                   <polygon
                     key={`${x}-${y}`}
@@ -737,10 +728,9 @@ export function Editor() {
               {[false, true].flatMap((eventPass) => Array.from({ length: columns * rows }, (_, index) => {
                 const x = index % columns;
                 const y = Math.floor(index / columns);
-                const portalHere = file.portal && file.portal.hex[0] === x && file.portal.hex[1] === y;
-                if (image && !onMap(x, y, image) && !portalHere) return null;
+                if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
-                const event = Boolean(portalHere) || (occupied >= 0 && file.sites[occupied].kind !== 'move');
+                const event = occupied >= 0 && file.sites[occupied].kind !== 'move';
                 if (event !== eventPass) return null;
                 if (event) return <polygon key={`event-${x}-${y}`} points={hexOutline(x, y)} className={styles.eventCell} />;
                 const { cx, cy } = hexPixel(x, y);
@@ -758,23 +748,7 @@ export function Editor() {
                 );
               }))}
               {file.sites.flatMap((site) => site.kind === 'move' ? site.hexes : [])
-                .filter((hex) => !file.portal || !sameHex(hex, file.portal.hex))
                 .map(([x, y]) => <polygon key={`move-${x}-${y}`} points={hexOutline(x, y)} className={styles.moveCell} />)}
-              {file.portal && (() => {
-                const { cx, cy } = hexPixel(file.portal.hex[0], file.portal.hex[1]);
-                return (
-                  <image
-                    href={gameIconSrc('portal')}
-                    x={cx - SPRITE_SIZE / 2}
-                    y={cy - SPRITE_SIZE / 2}
-                    width={SPRITE_SIZE}
-                    height={SPRITE_SIZE}
-                    className={styles.sprite}
-                  >
-                    <title>{`Quest ${file.portal.quest_id} · Portal`}</title>
-                  </image>
-                );
-              })()}
               {file.sites.map((site, index) => {
                 const icon = siteIcon(site);
                 if (!icon || site.kind === 'move') return null;

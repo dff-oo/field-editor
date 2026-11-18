@@ -17,19 +17,10 @@ export interface WorldLayout {
   hide_cloud_tex: number;
 }
 
-export interface FieldPortal {
-  questId: number;
-  hexX: number;
-  hexY: number;
-  symbolLabel: number;
-  hiddenBy: number;
-}
-
 export interface CompiledField {
   fieldId: number;
   world: WorldLayout | null;
   sites: FieldSite[];
-  portal: FieldPortal | null;
   goalQuestId: number | null;
 }
 
@@ -115,7 +106,6 @@ export interface CompiledFile {
   fieldId: number;
   world: WorldLayout | null;
   sites: FieldSite[];
-  portal: FieldPortal | null;
   goalQuestId: number | null;
   joins: Map<number, number>;
   summons: Map<number, number>;
@@ -197,15 +187,6 @@ export function compileFieldFile(file: FieldFile): CompiledFile {
     fieldId: file.field,
     world: file.world ?? null,
     sites,
-    portal: file.portal
-      ? {
-          questId: file.portal.quest_id,
-          hexX: file.portal.hex[0],
-          hexY: file.portal.hex[1],
-          symbolLabel: file.portal.symbol_label,
-          hiddenBy: file.portal.hidden_by,
-        }
-      : null,
     goalQuestId,
     joins,
     summons,
