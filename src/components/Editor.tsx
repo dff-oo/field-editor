@@ -49,8 +49,12 @@ const MIN_ZOOM = HEX_STEP_X * 4;
 const MAX_ZOOM = HEX_STEP_X * 48;
 
 const SPRITE_SIZE = 92;
-const JOIN_BUBBLE_SIZE = 72;
-const JOIN_FACE_SIZE = 84;
+const JOIN_BUBBLE_SIZE = 68;
+const JOIN_BUBBLE_X = -20;
+const JOIN_BUBBLE_Y = -16;
+const JOIN_FACE_SIZE = 104;
+const JOIN_FACE_X = 20;
+const JOIN_FACE_Y = 14;
 
 const BADGE_SIZE = 50;
 const BADGE_INSET = 4;
@@ -69,6 +73,7 @@ const LEGEND: { icon: GameIconName; label: string }[] = [
   { icon: 'helmet-green', label: 'Side quest' },
   { icon: 'treasure', label: 'Treasure' },
   { icon: 'portal', label: 'Portal' },
+  { icon: 'gate' as GameIconName, label: 'Gate' },
 ];
 
 interface Camera {
@@ -117,6 +122,13 @@ function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string |
   if (site.kind === 'move') {
     const offset = site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1]);
     return `Quest ${site.first_quest_id + offset} · ${label}`;
+  }
+  if (site.kind === 'gate') {
+    const names = site.opens_when.map((id) => {
+      const row = questHexes(file).find((entry) => entry.questId === id);
+      return row && row.site >= 0 ? siteLabel(file, row.site, talks) : String(id);
+    });
+    return `Quest ${site.quest_id} · Gate · opens after ${names.join(', ') || 'nothing'}`;
   }
   return `Quest ${site.quest_id} · ${label}`;
 }
@@ -784,23 +796,26 @@ export function Editor() {
                   );
                 }
                 return (
-                  <g key={`sprite-${index}`} className={styles.sprite}>
-                    <image
-                      href={gameIconSrc(icon)}
-                      x={cx - JOIN_BUBBLE_SIZE + 6}
-                      y={cy - JOIN_BUBBLE_SIZE / 2}
-                      width={JOIN_BUBBLE_SIZE}
-                      height={JOIN_BUBBLE_SIZE}
-                    />
+                  <g key={`sprite-${index}`} className={styles.sprite} clipPath={`url(#join-clip-${index})`}>
+                    <clipPath id={`join-clip-${index}`}>
+                      <polygon points={hexOutline(site.hex[0], site.hex[1])} />
+                    </clipPath>
                     <image
                       href={characterImageSrc(joining.image_id)}
-                      x={cx - 2}
-                      y={cy - JOIN_FACE_SIZE / 2}
+                      x={cx + JOIN_FACE_X - JOIN_FACE_SIZE / 2}
+                      y={cy + JOIN_FACE_Y - JOIN_FACE_SIZE / 2}
                       width={JOIN_FACE_SIZE}
                       height={JOIN_FACE_SIZE}
                     >
                       <title>{`${joining.name} joins the party`}</title>
                     </image>
+                    <image
+                      href={gameIconSrc(icon)}
+                      x={cx + JOIN_BUBBLE_X - JOIN_BUBBLE_SIZE / 2}
+                      y={cy + JOIN_BUBBLE_Y - JOIN_BUBBLE_SIZE / 2}
+                      width={JOIN_BUBBLE_SIZE}
+                      height={JOIN_BUBBLE_SIZE}
+                    />
                   </g>
                 );
               })}

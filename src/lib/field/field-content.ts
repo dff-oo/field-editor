@@ -1,4 +1,4 @@
-export type FieldSiteKind = 'cutscene' | 'battle' | 'move' | 'treasure';
+export type FieldSiteKind = 'cutscene' | 'battle' | 'move' | 'treasure' | 'gate';
 
 export interface FieldReward {
   item_type: number;
@@ -65,4 +65,6 @@ export interface FieldSite {
   treasure?: readonly FieldReward[];
   /** Map quest_type, when it is not the kind's usual one. */
   questType?: number;
+  /** Quest ids that must all be cleared before a gate opens. The gate is not among them. */
+  opensWhen?: readonly number[];
 }

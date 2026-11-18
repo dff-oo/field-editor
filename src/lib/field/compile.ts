@@ -144,6 +144,21 @@ export function compileFieldFile(file: FieldFile): CompiledFile {
       });
       continue;
     }
+    if (site.kind === 'gate') {
+      sites.push({
+        questId: site.quest_id,
+        name: '',
+        kind: 'gate',
+        beforeTalk: 0,
+        hexX: site.hex[0],
+        hexY: site.hex[1],
+        hexZ: 0,
+        revealedBy: site.revealed_by,
+        charaIcon: -1,
+        opensWhen: site.opens_when,
+      });
+      continue;
+    }
     if (site.kind === 'treasure') {
       const row: FieldSite = {
         questId: site.quest_id,

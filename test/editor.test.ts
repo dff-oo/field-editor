@@ -18,7 +18,10 @@ import { withStageNames, type Stage } from '../src/lib/resources';
 import stageNames from '../src/lib/stage-names.json';
 import Ajv from 'ajv';
 import { checkFields, type NameTables } from '../src/lib/field/check';
-import { fieldFileSchema, type FieldFile } from '../src/lib/field/schema';
+import { compileFieldFile } from '../src/lib/field/compile';
+import { formatField } from '../src/lib/field/format';
+import { visibleOnField } from '../src/lib/field/gates';
+import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '../src/lib/field/schema';
 import { fieldJsonSchema } from '../scripts/export-schema';
 import { decodeField, encodeField, linkToken } from '../src/lib/share';
 
@@ -128,6 +131,118 @@ describe('field maps', () => {
       if (existsSync(cdn)) expect(existsSync(join(cdn, entry.file)), `field ${id}`).toBe(true);
       expect(fieldMapFor(Number(id))).toEqual({ url: cdnSrc(`maps/${entry.file}`), scale: entry.scale });
     }
+  });
+});
+
+function cutscene(questId: number, hex: [number, number], revealedBy: number | null, goal = false): FieldSiteFile {
+  return {
+    quest_id: questId,
+    kind: 'cutscene',
+    hex,
+    revealed_by: revealedBy,
+    before_talk: 4,
+    ...(goal ? { goal: true as const } : {}),
+  };
+}
+
+/** Start at (1, 1), goal at (1, 2), and a gate at (1, 3) that opens once the goal is cleared. */
+function gateField(gate: FieldSiteFile, extra: FieldSiteFile[] = []): FieldFile {
+  return {
+    field: 7,
+    sites: [
+      cutscene(1, [1, 1], null),
+      cutscene(2, [1, 2], 1, true),
+      gate,
+      ...extra,
+    ],
+  };
+}
+
+describe('gates', () => {
+  const gate: FieldSiteFile = {
+    quest_id: 3,
+    kind: 'gate',
+    hex: [1, 3],
+    revealed_by: 1,
+    opens_when: [2],
+  };
+
+  it('parses a gate and keeps canonical key order', () => {
+    const file = fieldFileSchema.parse(gateField(gate));
+    const formatted = formatField(file);
+    const saved = JSON.parse(formatted) as { sites: Record<string, unknown>[] };
+    const savedGate = saved.sites.find((site) => site.kind === 'gate');
+    expect(savedGate && Object.keys(savedGate)).toEqual(['quest_id', 'kind', 'hex', 'revealed_by', 'opens_when']);
+    expect(compileFieldFile(file).sites.find((site) => site.questId === 3)).toMatchObject({
+      kind: 'gate',
+      hexX: 1,
+      hexY: 3,
+      revealedBy: 1,
+      opensWhen: [2],
+    });
+  });
+
+  it('round-trips a gate through a link token', async () => {
+    const file = fieldFileSchema.parse(gateField(gate));
+    expect(await decodeField(await encodeField(file))).toEqual(file);
+  });
+
+  it('accepts a gate with no checker problems', () => {
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate) }], nameTables());
+    expect(problems).toEqual([]);
+  });
+
+  it('reports a gate that lists itself, a missing quest, or a quest twice', () => {
+    const messages = (opens: number[]) => checkFields(
+      [{ name: 'gate.json', data: gateField({ ...gate, opens_when: opens }) }],
+      nameTables(),
+    ).map((problem) => problem.message);
+    expect(messages([3])).toContain('quest 3 opens when it is cleared itself');
+    expect(messages([99])).toContain('quest 3 opens when 99, which is not on this field');
+    expect(messages([2, 2])).toContain('quest 3 lists quest 2 twice');
+  });
+
+  it('rejects a gate with no conditions', () => {
+    const problems = checkFields(
+      [{ name: 'gate.json', data: gateField({ ...gate, opens_when: [] }) }],
+      nameTables(),
+    );
+    expect(problems.some((problem) => problem.message.includes('opens_when'))).toBe(true);
+  });
+
+  it('reports a gate that waits on a quest only it reveals', () => {
+    const behind = cutscene(4, [1, 4], 3);
+    const problems = checkFields(
+      [{ name: 'gate.json', data: gateField({ ...gate, opens_when: [4] }, [behind]) }],
+      nameTables(),
+    );
+    expect(problems.map((problem) => problem.message).join('\n')).toMatch(/reveal cycle/);
+  });
+
+  it('lets a site the gate reveals share the gate hex, and no other site', () => {
+    const replacement = cutscene(4, [1, 3], 3);
+    const allowed = checkFields([{ name: 'gate.json', data: gateField(gate, [replacement]) }], nameTables());
+    expect(allowed.map((problem) => problem.message).some((message) => message.includes('shares hex'))).toBe(false);
+
+    const stranger = cutscene(4, [1, 3], 1);
+    const blocked = checkFields([{ name: 'gate.json', data: gateField(gate, [stranger]) }], nameTables());
+    expect(blocked.map((problem) => problem.message)).toContain('quest 4 shares hex 1,3 with quest 3');
+  });
+
+  it('requires a site the gate reveals to touch a hex that stays when the gate opens', () => {
+    const beyond = cutscene(4, [1, 4], 3);
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [beyond]) }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain(
+      'clearing quest 3 reveals quests 4, which touch no hex already showing',
+    );
+  });
+
+  it('hides an open gate and shows what it reveals', () => {
+    const sites = compileFieldFile(gateField(gate, [cutscene(4, [2, 2], 3)])).sites;
+    expect(visibleOnField(sites, []).map((site) => site.questId)).toEqual([1]);
+    expect(visibleOnField(sites, [1]).map((site) => site.questId)).toEqual([1, 2, 3]);
+    expect(visibleOnField(sites, [2]).map((site) => site.questId)).toEqual([1]);
+    expect(visibleOnField(sites, [1, 2]).map((site) => site.questId)).toEqual([1, 2, 4]);
   });
 });
 

@@ -79,13 +79,17 @@ export function adjacent(a: Hex, b: Hex): boolean {
 }
 
 /** Quest ids in `sites` that cannot be reached from `startId` by walking adjacent hexes. */
-export function stranded(sites: readonly (Hex & { id: number })[], startId: number): number[] {
+export function stranded(
+  sites: readonly (Hex & { id: number })[],
+  startId: number,
+  canStep: (fromId: number, toId: number) => boolean = () => true,
+): number[] {
   const reached = new Set<number>([startId]);
   for (let grew = true; grew; ) {
     grew = false;
     for (const site of sites) {
       if (reached.has(site.id)) continue;
-      if (sites.some((other) => reached.has(other.id) && adjacent(other, site))) {
+      if (sites.some((other) => reached.has(other.id) && adjacent(other, site) && canStep(other.id, site.id))) {
         reached.add(site.id);
         grew = true;
       }

@@ -3,8 +3,12 @@ import { cdnSrc } from '@/lib/cdn';
 import type { Kind } from '@/lib/edit';
 import type { FieldSiteFile } from '@/lib/field/schema';
 
+/** `gate` joins GameIconName when Omnia publishes it. The sprite is still icons/gate.png. */
+const GATE_ICON = 'gate' as GameIconName;
+
 /** The map marker for a site kind; battles show the plain silver helmet. */
 export function kindIcon(kind: Kind): GameIconName {
+  if (kind === 'gate') return GATE_ICON;
   return kind === 'battle' ? 'helmet-silver' : kind;
 }
 
@@ -23,6 +27,7 @@ export function characterImageSrc(imageId: number): string {
 /** The sprite drawn on a site's hex. Move strips span several hexes and keep their step numbers instead. */
 export function siteIcon(site: FieldSiteFile): GameIconName | null {
   if (site.kind === 'battle') return battleHelmet(site);
+  if (site.kind === 'gate') return GATE_ICON;
   if (site.kind === 'cutscene' || site.kind === 'treasure') return site.kind;
   return null;
 }

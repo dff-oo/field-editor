@@ -105,7 +105,19 @@ export const moveSchema = z
   })
   .strict();
 
-export const siteSchema = z.discriminatedUnion('kind', [cutsceneSchema, battleSchema, treasureSchema, moveSchema]);
+/** A hex that vanishes, and reveals what it was holding back, once every quest in `opens_when` is cleared. */
+export const gateSchema = z
+  .object({
+    kind: z.literal('gate'),
+    quest_id: z.number().int(),
+    hex: hexSchema,
+    revealed_by: z.number().int(),
+    opens_when: z.array(z.number().int()).min(1),
+    ...provenance,
+  })
+  .strict();
+
+export const siteSchema = z.discriminatedUnion('kind', [cutsceneSchema, battleSchema, treasureSchema, moveSchema, gateSchema]);
 
 export const worldSchema = z
   .object({

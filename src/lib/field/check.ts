@@ -1,4 +1,5 @@
 import { stranded } from './hex';
+import { blocksGateStep, visibleWhenGateOpens } from './gates';
 import { compileFieldFile, type CompiledFile } from './compile';
 import { fieldFileSchema, type MissionFile, type RewardFile, type FieldFile } from './schema';
 
@@ -120,14 +121,20 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
   if (goals.length !== 1) {
     problems.push({ file, message: `field ${fieldId} has ${goals.length} goals; it needs one` });
   }
-  const hexes = new Map<string, number>();
+  const byId = new Map(sites.map((site) => [site.questId, site]));
+  const hexes = new Map<string, number[]>();
   for (const site of sites) {
     const key = `${site.hexX},${site.hexY}`;
-    const previous = hexes.get(key);
-    if (previous !== undefined) {
-      problems.push({ file, message: `quest ${site.questId} shares hex ${key} with quest ${previous}` });
-    } else {
-      hexes.set(key, site.questId);
+    const group = hexes.get(key) ?? [];
+    group.push(site.questId);
+    hexes.set(key, group);
+  }
+  for (const [key, occupants] of hexes) {
+    if (occupants.length < 2) continue;
+    const gateId = occupants.find((id) => byId.get(id)?.kind === 'gate');
+    const allowed = gateId !== undefined && occupants.every((id) => id === gateId || byId.get(id)?.revealedBy === gateId);
+    if (!allowed) {
+      problems.push({ file, message: `quest ${occupants[1]} shares hex ${key} with quest ${occupants[0]}` });
     }
   }
   const known = new Set(sites.map((site) => site.questId));
@@ -135,6 +142,18 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
   for (const site of sites) {
     if (site.revealedBy !== null && !known.has(site.revealedBy)) {
       problems.push({ file, message: `quest ${site.questId} is revealed by ${site.revealedBy}, which is not on this field` });
+    }
+    if (site.kind !== 'gate') continue;
+    const listed = new Set<number>();
+    for (const cond of site.opensWhen ?? []) {
+      if (cond === site.questId) {
+        problems.push({ file, message: `quest ${site.questId} opens when it is cleared itself` });
+      } else if (listed.has(cond)) {
+        problems.push({ file, message: `quest ${site.questId} lists quest ${cond} twice` });
+      } else if (!known.has(cond)) {
+        problems.push({ file, message: `quest ${site.questId} opens when ${cond}, which is not on this field` });
+      }
+      listed.add(cond);
     }
   }
   for (const portal of portals) {
@@ -152,23 +171,26 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
     seen.add(questId);
     const site = sites.find((entry) => entry.questId === questId);
     if (site?.revealedBy != null) visit(site.revealedBy, [...stack, questId]);
+    for (const cond of site?.opensWhen ?? []) visit(cond, [...stack, questId]);
   };
   for (const site of sites) visit(site.questId, []);
   if (starts.length === 1) {
-    const lost = stranded(
-      sites.map((site) => ({ id: site.questId, x: site.hexX, y: site.hexY })),
-      starts[0].questId,
-    );
+    const cells = sites.map((site) => ({ id: site.questId, x: site.hexX, y: site.hexY }));
+    const lost = stranded(cells, starts[0].questId, (from, to) => !blocksGateStep(byId.get(from), byId.get(to)));
     if (lost.length) {
       problems.push({ file, message: `quests not connected to the start: ${lost.join(', ')}` });
     }
-    const byId = new Map(sites.map((site) => [site.questId, site]));
     for (const revealer of sites) {
       if (!sites.some((site) => site.revealedBy === revealer.questId)) continue;
-      // Only hexes on the revealer's own chain are sure to be showing; other branches depend on play order.
-      const chain = new Set<number>();
-      for (let id: number | null = revealer.questId; id !== null && !chain.has(id); id = byId.get(id)?.revealedBy ?? null) chain.add(id);
-      const visible = sites.filter((site) => site.revealedBy === null || chain.has(site.revealedBy));
+      // A gate is gone when its sites appear, so they have to touch its chain and each condition's chain.
+      // Otherwise only hexes on the revealer's own chain are sure to be showing; other branches depend on play order.
+      let visible = sites;
+      if (revealer.kind === 'gate') visible = visibleWhenGateOpens(sites, revealer);
+      else {
+        const chain = new Set<number>();
+        for (let id: number | null = revealer.questId; id !== null && !chain.has(id); id = byId.get(id)?.revealedBy ?? null) chain.add(id);
+        visible = sites.filter((site) => site.revealedBy === null || chain.has(site.revealedBy));
+      }
       const lost = stranded(visible.map((site) => ({ id: site.questId, x: site.hexX, y: site.hexY })), starts[0].questId)
         .filter((id) => byId.get(id)?.revealedBy === revealer.questId);
       if (lost.length) {
@@ -193,7 +215,7 @@ function referenceProblems(file: string, field: FieldFile, names: NameTables): F
     }
   };
   for (const site of field.sites) {
-    if (site.kind === 'move') continue;
+    if (site.kind === 'move' || site.kind === 'gate') continue;
     if (site.kind === 'cutscene' && site.chara_icon) expect('character', site.chara_icon, names.characters);
     if (site.kind !== 'treasure' && site.grants_summon) expect('summon', site.grants_summon, names.summons);
     if (site.kind === 'cutscene' && site.before_talk) expect('talk', site.before_talk, names.talks);

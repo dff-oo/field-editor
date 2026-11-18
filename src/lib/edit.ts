@@ -11,6 +11,7 @@ export const KINDS: { kind: Kind; label: string }[] = [
   { kind: 'battle', label: 'Battle' },
   { kind: 'treasure', label: 'Treasure' },
   { kind: 'move', label: 'Move' },
+  { kind: 'gate', label: 'Gate' },
 ];
 
 export function emptyField(field: number): FieldFile {
@@ -82,6 +83,8 @@ export function siteLabel(file: FieldFile, siteIndex: number, talks: readonly { 
       return site.name.trim() ? `Battle: ${site.name}` : 'Battle (no name)';
     case 'treasure':
       return site.name ? `Treasure: ${site.name}` : 'Treasure';
+    case 'gate':
+      return 'Gate';
     default:
       return 'Move';
   }
@@ -97,6 +100,8 @@ export function newSite(file: FieldFile, kind: Kind, at: HexAt): FieldSiteFile {
       return { kind, hexes: [at], first_quest_id: questId, revealed_by: follows };
     case 'treasure':
       return { kind, quest_id: questId, hex: at, revealed_by: follows, treasure: [{ gil: 1000 }] };
+    case 'gate':
+      return { kind, quest_id: questId, hex: at, revealed_by: follows, opens_when: [] };
     case 'battle':
       return {
         kind, quest_id: questId, name: '', hex: at, revealed_by: revealed,
@@ -118,6 +123,15 @@ export function changeKind(file: FieldFile, site: FieldSiteFile, kind: Kind, at:
   const keep = { notes: site.notes, sources: site.sources };
   if (fresh.kind === 'move') return { ...fresh, ...keep, first_quest_id: questId, revealed_by: follows };
   if (fresh.kind === 'treasure') return { ...fresh, ...keep, quest_id: questId, name, revealed_by: follows };
+  if (fresh.kind === 'gate') {
+    return {
+      ...fresh,
+      ...keep,
+      quest_id: questId,
+      revealed_by: site.revealed_by ?? follows,
+      opens_when: site.kind === 'gate' ? site.opens_when : [],
+    };
+  }
   if (fresh.kind === 'battle') return { ...fresh, ...keep, quest_id: questId, name: name ?? '', revealed_by: site.revealed_by };
   return { ...fresh, ...keep, quest_id: questId, revealed_by: site.revealed_by };
 }

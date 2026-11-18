@@ -136,3 +136,113 @@
   padding-top: var(--omnia-space-3);
   border-top: 1px solid var(--omnia-border);
 }
+
+.opens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-1);
+  min-width: 0;
+}
+
+.opensLabel {
+  font-size: var(--omnia-text-small);
+  font-weight: var(--omnia-weight-semibold);
+}
+
+.opensControl {
+  display: flex;
+  align-items: center;
+  gap: var(--omnia-space-1);
+  min-width: 0;
+  padding: var(--omnia-space-1);
+  border: 1px solid var(--omnia-border);
+  border-radius: var(--omnia-radius-sm);
+  background: var(--omnia-surface);
+}
+
+.chips {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--omnia-space-1);
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--omnia-space-1);
+  max-width: 100%;
+  padding: 2px 4px 2px 8px;
+  border-radius: var(--omnia-radius-sm);
+  background: var(--omnia-surface-2);
+  font-size: var(--omnia-text-small);
+}
+
+.chipRemove {
+  display: inline-flex;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--omnia-radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.opensInput {
+  flex: 1;
+  min-width: 6rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.opensTrigger {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.opensPositioner {
+  z-index: 30;
+}
+
+.opensPopup {
+  max-height: 16rem;
+  overflow: auto;
+  padding: var(--omnia-space-1);
+  border: 1px solid var(--omnia-border);
+  border-radius: var(--omnia-radius-sm);
+  background: var(--omnia-surface);
+  box-shadow: var(--omnia-shadow);
+}
+
+.opensEmpty {
+  padding: var(--omnia-space-2);
+  color: var(--omnia-fg-muted);
+  font-size: var(--omnia-text-small);
+}
+
+.opensItem {
+  display: flex;
+  align-items: center;
+  gap: var(--omnia-space-2);
+  padding: var(--omnia-space-1) var(--omnia-space-2);
+  border-radius: var(--omnia-radius-sm);
+  cursor: pointer;
+}
+
+.opensItem[data-highlighted] {
+  background: var(--omnia-surface-2);
+}
+
+.opensMark {
+  display: inline-flex;
+  width: 1rem;
+  flex: none;
+}

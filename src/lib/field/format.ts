@@ -18,6 +18,7 @@ const SITE_KEYS: Record<string, readonly string[]> = {
   ],
   treasure: ['quest_id', 'kind', 'name', 'hex', 'revealed_by', 'treasure', 'quest_type', ...PROVENANCE],
   move: ['kind', 'hexes', 'first_quest_id', 'revealed_by', ...PROVENANCE],
+  gate: ['quest_id', 'kind', 'hex', 'revealed_by', 'opens_when', ...PROVENANCE],
 };
 
 function order(value: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> {

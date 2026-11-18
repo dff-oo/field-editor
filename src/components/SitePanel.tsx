@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
-import { Button, Checkbox, CloseIcon, Combobox, GameIcon, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dffoogg/omnia-ui';
+import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
+import { Button, CheckIcon, Checkbox, CloseIcon, Combobox, GameIcon, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dffoogg/omnia-ui';
 import { MISSION_TYPES } from '@/lib/field/compile';
 import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
@@ -201,6 +202,14 @@ export function SitePanel(props: {
         />
       )}
 
+      {site.kind === 'gate' && (
+        <OpensWhen
+          options={revealOptions}
+          selected={site.opens_when.map(String)}
+          onChange={(ids) => put({ ...site, opens_when: ids.map(Number) })}
+        />
+      )}
+
       {(site.kind === 'cutscene' || site.kind === 'battle') && (
         <PlacedFields site={site} options={options} onChange={put} />
       )}
@@ -222,6 +231,57 @@ export function SitePanel(props: {
           Delete
         </Button>
       </div>
+    </div>
+  );
+}
+
+/** Quests that must be cleared before a gate opens. Several can be chosen. */
+function OpensWhen(props: { options: Option[]; selected: readonly string[]; onChange: (ids: string[]) => void }) {
+  const chosen = props.selected.map((id) => props.options.find((option) => option.value === id) ?? { value: id, label: id });
+  return (
+    <div className={styles.opens}>
+      <span className={styles.opensLabel} id="opens-when-label">Opens when cleared</span>
+      <BaseCombobox.Root<Option, true>
+        multiple
+        items={props.options}
+        value={chosen}
+        onValueChange={(next) => props.onChange(next.map((option) => option.value))}
+        isItemEqualToValue={(left, right) => left.value === right.value}
+      >
+        <BaseCombobox.InputGroup className={styles.opensControl} aria-labelledby="opens-when-label">
+          <BaseCombobox.Chips className={styles.chips}>
+            {chosen.map((option) => (
+              <BaseCombobox.Chip key={option.value} className={styles.chip}>
+                {option.label}
+                <BaseCombobox.ChipRemove className={styles.chipRemove} aria-label={`Remove ${option.label}`}>
+                  <CloseIcon size={16} />
+                </BaseCombobox.ChipRemove>
+              </BaseCombobox.Chip>
+            ))}
+            <BaseCombobox.Input className={styles.opensInput} aria-label="Opens when cleared" placeholder={chosen.length ? '' : 'Search quests'} />
+          </BaseCombobox.Chips>
+          <BaseCombobox.Trigger className={styles.opensTrigger} aria-label="Show quests" />
+        </BaseCombobox.InputGroup>
+        <BaseCombobox.Portal>
+          <BaseCombobox.Positioner className={styles.opensPositioner} sideOffset={6}>
+            <BaseCombobox.Popup className={styles.opensPopup}>
+              <BaseCombobox.Empty className={styles.opensEmpty}>No matches</BaseCombobox.Empty>
+              <BaseCombobox.List>
+                {(option: Option) => (
+                  <BaseCombobox.Item key={option.value} value={option} className={styles.opensItem}>
+                    <span className={styles.opensMark}>
+                      <BaseCombobox.ItemIndicator>
+                        <CheckIcon size={16} />
+                      </BaseCombobox.ItemIndicator>
+                    </span>
+                    {option.label}
+                  </BaseCombobox.Item>
+                )}
+              </BaseCombobox.List>
+            </BaseCombobox.Popup>
+          </BaseCombobox.Positioner>
+        </BaseCombobox.Portal>
+      </BaseCombobox.Root>
     </div>
   );
 }
