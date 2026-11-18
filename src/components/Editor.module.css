@@ -303,6 +303,24 @@ button.chip {
 .moveFillMiddle { stop-color: rgb(11 75 77 / 0.48); }
 .moveFillEdge { stop-color: rgb(24 255 230 / 0.38); }
 
+/* The game hides what a shut gate holds back under its cloud. */
+.map svg .behindGate,
+.legendSwatch .behindGate {
+  fill: rgb(214 220 236 / 0.42);
+  stroke: #c77dff;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.map svg.legendSwatch {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
 .sprite {
   pointer-events: none;
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.6));

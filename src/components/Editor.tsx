@@ -33,7 +33,7 @@ import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources'
 import { checkFields, type NameTables } from '@/lib/field/check';
 import { HEX_EVEN_COLUMN_SHIFT, HEX_HALF_HEIGHT, HEX_HALF_WIDTH, HEX_STEP_X, HEX_STEP_Y, fieldImageRect, hexOutline, hexPixel } from '@/lib/field/hex';
 import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '@/lib/field/schema';
-import { questHexes, siteAt, siteLabel, fieldFileName, type HexAt } from '@/lib/edit';
+import { gateRequirement, questHexes, siteAt, siteLabel, fieldFileName, type HexAt } from '@/lib/edit';
 import { SitePanel } from './SitePanel';
 import { NewField } from './NewField';
 import { LoadField, readLink } from './LoadField';
@@ -105,30 +105,38 @@ function revealLinks(file: FieldFile, at: HexAt | null): { reveals: HexAt[]; rev
 }
 
 /** What the hover readout says about a hex. */
-function hoverText(file: FieldFile, at: HexAt, talks: Resources['talks']): string {
-  const tip = hexTip(file, at, talks);
+type Names = Pick<Resources, 'talks' | 'characters'>;
+
+function hoverText(file: FieldFile, at: HexAt, names: Names): string {
+  const tip = hexTip(file, at, names);
   if (!tip) return 'Empty';
   const { reveals } = revealLinks(file, at);
   return reveals.length > 0 ? `${tip} · reveals ${reveals.length} ${reveals.length === 1 ? 'hex' : 'hexes'}` : tip;
 }
 
-function hexTip(file: FieldFile, at: HexAt, talks: Resources['talks']): string | null {
+function hexTip(file: FieldFile, at: HexAt, names: Names): string | null {
   const index = siteAt(file, at);
   if (index < 0) return null;
   const site = file.sites[index];
-  const label = siteLabel(file, index, talks);
+  const label = siteLabel(file, index, names.talks);
+  const behind = gateBehind(file, site);
+  const suffix = behind === null ? '' : ` · in cloud until gate ${behind} opens`;
   if (site.kind === 'move') {
     const offset = site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1]);
-    return `Quest ${site.first_quest_id + offset} · ${label}`;
+    return `Quest ${site.first_quest_id + offset} · ${label}${suffix}`;
   }
   if (site.kind === 'gate') {
-    const names = site.opens_when.map((id) => {
-      const row = questHexes(file).find((entry) => entry.questId === id);
-      return row && row.site >= 0 ? siteLabel(file, row.site, talks) : String(id);
-    });
-    return `Quest ${site.quest_id} · Gate · opens after ${names.join(', ') || 'nothing'}`;
+    const requirements = site.opens_when.map((id) => gateRequirement(file, id, names));
+    return `Quest ${site.quest_id} · Gate · Requirements: ${requirements.join(', ') || 'none'}`;
   }
-  return `Quest ${site.quest_id} · ${label}`;
+  return `Quest ${site.quest_id} · ${label}${suffix}`;
+}
+
+/** The gate a site is revealed by, which keeps it hidden until the gate opens. */
+function gateBehind(file: FieldFile, site: FieldFile['sites'][number]): number | null {
+  if (site.revealed_by === null) return null;
+  const row = questHexes(file).find((entry) => entry.questId === site.revealed_by);
+  return row && file.sites[row.site]?.kind === 'gate' ? row.questId : null;
 }
 
 /** A cell is on the map only when its whole outline lies inside the painting. */
@@ -311,7 +319,7 @@ export function Editor() {
     const hex: HexAt = [Math.max(0, Math.min(columns - 1, next[0])), Math.max(0, Math.min(rows - 1, next[1]))];
     setCursor(hex);
     if (!file) return;
-    const tip = hexTip(file, hex, resources.talks);
+    const tip = hexTip(file, hex, resources);
     setCursorNote(tip ?? `Empty hex ${hex[0]}, ${hex[1]}`);
   }
 
@@ -704,7 +712,7 @@ export function Editor() {
                 if (image && !onMap(x, y, image)) return null;
                 const occupied = siteAt(file, [x, y]);
                 const tint = undefined;
-                const tip = occupied >= 0 ? hexTip(file, [x, y], resources.talks) : null;
+                const tip = occupied >= 0 ? hexTip(file, [x, y], resources) : null;
                 return (
                   <polygon
                     key={`${x}-${y}`}
@@ -793,6 +801,12 @@ export function Editor() {
                   </g>
                 );
               })}
+              {file.sites.flatMap((site) => {
+                if (gateBehind(file, site) === null) return [];
+                return (site.kind === 'move' ? site.hexes : [site.hex]).map(([x, y]) => (
+                  <polygon key={`cloud-${x}-${y}`} points={hexOutline(x, y)} className={styles.behindGate} />
+                ));
+              })}
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'cutscene' && site.kind !== 'battle') return [];
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
@@ -862,13 +876,20 @@ export function Editor() {
                   </span>
                 ))}
                 <span><GameIcon name="start" size={20} /> Start</span>
-                <span><GameIcon name="goal" size={20} /> Goal</span>              </div>
+                <span><GameIcon name="goal" size={20} /> Goal</span>
+                <span>
+                  <svg className={styles.legendSwatch} viewBox="0 0 20 20" aria-hidden="true">
+                    <polygon points="5,2 15,2 20,10 15,18 5,18 0,10" className={styles.behindGate} />
+                  </svg>
+                  Behind a gate, in cloud until it opens
+                </span>
+              </div>
             )}
           </div>
           <div className={styles.mapControls}>
             {hover && (
               <div className={styles.readout} aria-hidden="true">
-                <b>Hex {hover[0]}, {hover[1]}</b> {hoverText(file, hover, resources.talks)}
+                <b>Hex {hover[0]}, {hover[1]}</b> {hoverText(file, hover, resources)}
               </div>
             )}
             {fieldMap && (

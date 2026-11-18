@@ -4,7 +4,7 @@ import { Button, CheckIcon, Checkbox, CloseIcon, Combobox, GameIcon, IconButton,
 import { MISSION_TYPES } from '@/lib/field/compile';
 import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
-import { KINDS, adjacentMoves, changeKind, clearHex, defaultReveal, extendMove, newSite, questHexes, siteAt, siteLabel, type HexAt, type Kind } from '@/lib/edit';
+import { KINDS, adjacentMoves, changeKind, clearHex, defaultReveal, extendMove, gateRequirement, newSite, questHexes, siteAt, siteLabel, type HexAt, type Kind } from '@/lib/edit';
 import { kindIcon } from '@/lib/game-icons';
 import { namedOptions, stageOptions, type Option } from '@/lib/options';
 import styles from './SitePanel.module.css';
@@ -203,11 +203,27 @@ export function SitePanel(props: {
       )}
 
       {site.kind === 'gate' && (
-        <OpensWhen
-          options={revealOptions}
-          selected={site.opens_when.map(String)}
-          onChange={(ids) => put({ ...site, opens_when: ids.map(Number) })}
-        />
+        <>
+          <OpensWhen
+            options={revealOptions}
+            selected={site.opens_when.map(String)}
+            onChange={(ids) => put({ ...site, opens_when: ids.map(Number) })}
+          />
+          <Group legend="Requirements">
+            {site.opens_when.length > 0 ? (
+              <ul className={styles.requirements}>
+                {site.opens_when.map((id) => <li key={id}>{gateRequirement(file, id, resources)}</li>)}
+              </ul>
+            ) : (
+              <p className={styles.meta}>Pick at least one quest above.</p>
+            )}
+            <p className={styles.meta}>
+              Tapping the gate lists these. Once the last one is cleared, the game pans to the gate, marks it CLEARED and
+              plays the chains falling. The gate stays as a walkable hex. What it reveals stays in cloud until then, so
+              those hexes may only touch the gate and each other.
+            </p>
+          </Group>
+        </>
       )}
 
       {(site.kind === 'cutscene' || site.kind === 'battle') && (

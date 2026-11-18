@@ -89,6 +89,26 @@ export function siteLabel(file: FieldFile, siteIndex: number, talks: readonly { 
   }
 }
 
+/**
+ * A gate condition as the game prints it under Requirements. Must match conditionKind in the
+ * server's gameplay.ts: a cutscene where someone joins reads "Make Cloud an ally".
+ */
+export function gateRequirement(
+  file: FieldFile,
+  questId: number,
+  names: { talks: readonly { id: number; name: string }[]; characters: readonly { id: number; name: string }[] },
+): string {
+  const row = questHexes(file).find((entry) => entry.questId === questId);
+  const site = row ? file.sites[row.site] : undefined;
+  if (site?.kind === 'cutscene' && site.joins && site.chara_icon) {
+    const name = names.characters.find((character) => character.id === site.chara_icon)?.name;
+    if (name) return `Make ${name} an ally`;
+  }
+  if (site?.kind === 'cutscene') return `Clear ${names.talks.find((talk) => talk.id === site.before_talk)?.name ?? `quest ${questId}`}`;
+  if (site?.kind === 'battle' || site?.kind === 'treasure') return `Clear ${site.name || `quest ${questId}`}`;
+  return `Clear quest ${questId}`;
+}
+
 export function newSite(file: FieldFile, kind: Kind, at: HexAt): FieldSiteFile {
   const questId = suggestId(file);
   const revealed = defaultReveal(file, at);

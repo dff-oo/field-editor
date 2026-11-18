@@ -30,28 +30,116 @@ export function satisfiedQuests(sites: readonly RevealSite[], cleared: readonly 
   return satisfied;
 }
 
-/** Move rows and gates are never played, so the client treats them as already clear. */
+/**
+ * Move rows are never played, so the client treats them as already clear.
+ * A gate stays 0: the client draws a gate sent as clear as already open, and it keeps its own
+ * record of which gates it has opened.
+ */
 export function shownCleared(kind: string, cleared: boolean): boolean {
-  return kind === 'move' || kind === 'gate' || cleared;
+  return kind === 'move' || (kind !== 'gate' && cleared);
 }
 
-/** Sites on the map: revealed, and not a gate that has already opened. */
+/**
+ * Sites on the map: revealed ones, plus the sites behind every gate on the map.
+ * The client hides a hex it can only reach through a shut gate, and reveals it with the NEW
+ * animation once it has played the gate's opening. An open gate stays as a walkable hex.
+ */
 export function visibleOnField<T extends RevealSite>(sites: readonly T[], cleared: readonly number[]): T[] {
+  const revealed = new Set(revealedOnField(sites, cleared));
+  const gatesShown = new Set([...revealed].filter((site) => site.kind === 'gate').map((site) => site.questId));
+  return sites.filter((site) => revealed.has(site) || (site.revealedBy !== null && gatesShown.has(site.revealedBy)));
+}
+
+/** Sites the player can see: the start, and every site whose revealer is cleared or an open gate. */
+export function revealedOnField<T extends RevealSite>(sites: readonly T[], cleared: readonly number[]): T[] {
   const satisfied = satisfiedQuests(sites, cleared);
-  return sites.filter((site) => {
-    if (site.revealedBy !== null && !satisfied.has(site.revealedBy)) return false;
-    return !(site.kind === 'gate' && satisfied.has(site.questId));
-  });
+  return sites.filter((site) => site.revealedBy === null || satisfied.has(site.revealedBy));
 }
 
-/** True when a step would use a gate as a bridge to a site that appears only after the gate is gone. */
-export function blocksGateStep(from: RevealSite | undefined, to: RevealSite | undefined): boolean {
-  if (from?.kind === 'gate' && to?.revealedBy === from.questId) return true;
-  if (to?.kind === 'gate' && from?.revealedBy === to.questId) return true;
-  return false;
+/** One condition of a gate that is on the map. */
+export interface GateCondition {
+  gateQuestId: number;
+  condQuestId: number;
+  /** Position in the gate's opensWhen list. */
+  index: number;
+  cleared: boolean;
 }
 
-/** What is showing when a gate opens (its chain and each condition's chain, without the gate) plus the sites it reveals. */
+/**
+ * Every condition of every gate on the map, with the met ones marked cleared.
+ * The client lists them when the gate is tapped, so an open gate keeps its rows.
+ * A gate that is not revealed yet contributes nothing.
+ */
+export function gateConditions(sites: readonly RevealSite[], cleared: readonly number[]): GateCondition[] {
+  const satisfied = satisfiedQuests(sites, cleared);
+  const rows: GateCondition[] = [];
+  for (const site of sites) {
+    if (site.kind !== 'gate') continue;
+    const revealed = site.revealedBy === null || satisfied.has(site.revealedBy);
+    if (!revealed) continue;
+    (site.opensWhen ?? []).forEach((condQuestId, index) => {
+      rows.push({
+        gateQuestId: site.questId,
+        condQuestId,
+        index,
+        cleared: satisfied.has(condQuestId),
+      });
+    });
+  }
+  return rows;
+}
+
+/**
+ * Gates that a clear opens and that were already on the map before it.
+ * The client can only play the opening on a gate it is showing.
+ */
+export function gatesOpenedBy<T extends RevealSite>(
+  sites: readonly T[],
+  before: readonly number[],
+  after: readonly number[],
+): T[] {
+  const was = satisfiedQuests(sites, before);
+  const now = satisfiedQuests(sites, after);
+  return sites.filter(
+    (site) =>
+      site.kind === 'gate' &&
+      !was.has(site.questId) &&
+      now.has(site.questId) &&
+      (site.revealedBy === null || was.has(site.revealedBy)),
+  );
+}
+
+/**
+ * Sites the gate reveals that touch a hex outside the gate's own reveals, as [site, neighbour].
+ * The client works out visibility by walking hexes from the start, so a site behind a shut gate
+ * stays hidden only while the gate is the one way to reach it.
+ */
+export function leaksPastGate<T extends RevealSite & { hexX: number; hexY: number }>(
+  sites: readonly T[],
+  gate: T,
+  adjacent: (a: { x: number; y: number }, b: { x: number; y: number }) => boolean,
+): [number, number][] {
+  const byId = new Map(sites.map((site) => [site.questId, site]));
+  const behind = (site: T): boolean => {
+    const seen = new Set<number>();
+    for (let id = site.revealedBy; id !== null && !seen.has(id); id = byId.get(id)?.revealedBy ?? null) {
+      if (id === gate.questId) return true;
+      seen.add(id);
+    }
+    return false;
+  };
+  const leaks: [number, number][] = [];
+  for (const site of sites) {
+    if (site.revealedBy !== gate.questId) continue;
+    for (const other of sites) {
+      if (other === gate || other === site || behind(other)) continue;
+      if (adjacent({ x: site.hexX, y: site.hexY }, { x: other.hexX, y: other.hexY })) leaks.push([site.questId, other.questId]);
+    }
+  }
+  return leaks;
+}
+
+/** What is showing when a gate opens (the gate, its chain and each condition's chain) plus the sites it reveals. */
 export function visibleWhenGateOpens<T extends RevealSite>(sites: readonly T[], gate: T): T[] {
   const byId = new Map(sites.map((site) => [site.questId, site]));
   const showing = new Set<number>();
@@ -62,10 +150,5 @@ export function visibleWhenGateOpens<T extends RevealSite>(sites: readonly T[], 
   };
   addChain(gate.questId);
   for (const cond of gate.opensWhen ?? []) addChain(cond);
-  showing.delete(gate.questId);
-  return sites.filter((site) => {
-    if (site.questId === gate.questId) return false;
-    if (site.revealedBy === gate.questId) return true;
-    return site.revealedBy === null || showing.has(site.revealedBy);
-  });
+  return sites.filter((site) => site.revealedBy === null || site.revealedBy === gate.questId || showing.has(site.revealedBy));
 }

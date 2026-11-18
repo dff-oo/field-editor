@@ -1,5 +1,5 @@
-import { stranded } from './hex';
-import { blocksGateStep, visibleWhenGateOpens } from './gates';
+import { adjacent, stranded } from './hex';
+import { leaksPastGate, visibleWhenGateOpens } from './gates';
 import { compileFieldFile, type CompiledFile } from './compile';
 import { fieldFileSchema, type MissionFile, type RewardFile, type FieldFile } from './schema';
 
@@ -127,11 +127,7 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
   }
   for (const [key, occupants] of hexes) {
     if (occupants.length < 2) continue;
-    const gateId = occupants.find((id) => byId.get(id)?.kind === 'gate');
-    const allowed = gateId !== undefined && occupants.every((id) => id === gateId || byId.get(id)?.revealedBy === gateId);
-    if (!allowed) {
-      problems.push({ file, message: `quest ${occupants[1]} shares hex ${key} with quest ${occupants[0]}` });
-    }
+    problems.push({ file, message: `quest ${occupants[1]} shares hex ${key} with quest ${occupants[0]}` });
   }
   const known = new Set(sites.map((site) => site.questId));
   for (const site of sites) {
@@ -166,13 +162,21 @@ function fieldProblems(fieldId: number, group: Expanded[]): FieldProblem[] {
   for (const site of sites) visit(site.questId, []);
   if (starts.length === 1) {
     const cells = sites.map((site) => ({ id: site.questId, x: site.hexX, y: site.hexY }));
-    const lost = stranded(cells, starts[0].questId, (from, to) => !blocksGateStep(byId.get(from), byId.get(to)));
+    const lost = stranded(cells, starts[0].questId);
     if (lost.length) {
       problems.push({ file, message: `quests not connected to the start: ${lost.join(', ')}` });
     }
     for (const revealer of sites) {
       if (!sites.some((site) => site.revealedBy === revealer.questId)) continue;
-      // A gate is gone when its sites appear, so they have to touch its chain and each condition's chain.
+      if (revealer.kind === 'gate') {
+        for (const [site, neighbour] of leaksPastGate(sites, revealer, adjacent)) {
+          problems.push({
+            file,
+            message: `quest ${site} is behind gate ${revealer.questId} but touches quest ${neighbour}, so it shows before the gate opens`,
+          });
+        }
+      }
+      // An open gate stays as a hex, so its sites may touch it, its chain or any condition's chain.
       // Otherwise only hexes on the revealer's own chain are sure to be showing; other branches depend on play order.
       let visible = sites;
       if (revealer.kind === 'gate') visible = visibleWhenGateOpens(sites, revealer);

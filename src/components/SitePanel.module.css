@@ -137,6 +137,14 @@
   border-top: 1px solid var(--omnia-border);
 }
 
+.requirements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--omnia-space-1);
+  margin: 0;
+  padding-left: var(--omnia-space-4);
+}
+
 .opens {
   display: flex;
   flex-direction: column;

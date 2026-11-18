@@ -10,7 +10,7 @@ import summons from '@dffoogg/resources/summons.json';
 import stages from '@dffoogg/resources/stages.json';
 import talks from '@dffoogg/resources/talks.json';
 import { decodeEtc1 } from '../scripts/export-field-maps';
-import { fieldFileName } from '../src/lib/edit';
+import { fieldFileName, gateRequirement } from '../src/lib/edit';
 import { cdnSrc } from '../src/lib/cdn';
 import { fieldMapFor } from '../src/lib/field-map';
 import fieldMaps from '../src/lib/field-maps.json';
@@ -20,7 +20,7 @@ import Ajv from 'ajv';
 import { checkFields, type NameTables } from '../src/lib/field/check';
 import { compileFieldFile } from '../src/lib/field/compile';
 import { formatField } from '../src/lib/field/format';
-import { visibleOnField } from '../src/lib/field/gates';
+import { revealedOnField, shownCleared, visibleOnField } from '../src/lib/field/gates';
 import { fieldFileSchema, type FieldFile, type FieldSiteFile } from '../src/lib/field/schema';
 import { fieldJsonSchema } from '../scripts/export-schema';
 import { decodeField, encodeField, linkToken } from '../src/lib/share';
@@ -219,30 +219,61 @@ describe('gates', () => {
     expect(problems.map((problem) => problem.message).join('\n')).toMatch(/reveal cycle/);
   });
 
-  it('lets a site the gate reveals share the gate hex, and no other site', () => {
+  it('lets no site share the gate hex, even one the gate reveals', () => {
     const replacement = cutscene(4, [1, 3], 3);
-    const allowed = checkFields([{ name: 'gate.json', data: gateField(gate, [replacement]) }], nameTables());
-    expect(allowed.map((problem) => problem.message).some((message) => message.includes('shares hex'))).toBe(false);
-
-    const stranger = cutscene(4, [1, 3], 1);
-    const blocked = checkFields([{ name: 'gate.json', data: gateField(gate, [stranger]) }], nameTables());
-    expect(blocked.map((problem) => problem.message)).toContain('quest 4 shares hex 1,3 with quest 3');
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [replacement]) }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain('quest 4 shares hex 1,3 with quest 3');
   });
 
-  it('requires a site the gate reveals to touch a hex that stays when the gate opens', () => {
+  it('connects the sites a gate reveals through the open gate hex', () => {
     const beyond = cutscene(4, [1, 4], 3);
-    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [beyond]) }], nameTables());
+    const further = { kind: 'move' as const, hexes: [[1, 5]] as [number, number][], first_quest_id: 5, revealed_by: 3 };
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [beyond, further]) }], nameTables());
+    expect(problems).toEqual([]);
+  });
+
+  it('requires a site the gate reveals to touch a hex that is showing when the gate opens', () => {
+    const away = cutscene(4, [5, 5], 3);
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [away]) }], nameTables());
     expect(problems.map((problem) => problem.message)).toContain(
       'clearing quest 3 reveals quests 4, which touch no hex already showing',
     );
   });
 
-  it('hides an open gate and shows what it reveals', () => {
+  it('sends what a shut gate holds back, which the game keeps in cloud until it opens', () => {
     const sites = compileFieldFile(gateField(gate, [cutscene(4, [2, 2], 3)])).sites;
     expect(visibleOnField(sites, []).map((site) => site.questId)).toEqual([1]);
-    expect(visibleOnField(sites, [1]).map((site) => site.questId)).toEqual([1, 2, 3]);
+    expect(visibleOnField(sites, [1]).map((site) => site.questId)).toEqual([1, 2, 3, 4]);
+    expect(revealedOnField(sites, [1]).map((site) => site.questId)).toEqual([1, 2, 3]);
     expect(visibleOnField(sites, [2]).map((site) => site.questId)).toEqual([1]);
-    expect(visibleOnField(sites, [1, 2]).map((site) => site.questId)).toEqual([1, 2, 4]);
+    expect(revealedOnField(sites, [1, 2]).map((site) => site.questId)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('never sends a gate as cleared, since the game draws that as already open', () => {
+    expect(shownCleared('gate', true)).toBe(false);
+    expect(shownCleared('move', false)).toBe(true);
+  });
+
+  it('reports a site behind a gate that another showing hex touches', () => {
+    const behind = cutscene(4, [1, 4], 3);
+    const sideDoor = cutscene(5, [1, 5], 2);
+    const problems = checkFields([{ name: 'gate.json', data: gateField(gate, [behind, sideDoor]) }], nameTables());
+    expect(problems.map((problem) => problem.message)).toContain(
+      'quest 4 is behind gate 3 but touches quest 5, so it shows before the gate opens',
+    );
+    const deeper = cutscene(5, [1, 5], 4);
+    const sealed = checkFields([{ name: 'gate.json', data: gateField(gate, [behind, deeper]) }], nameTables());
+    expect(sealed.map((problem) => problem.message).filter((message) => message.includes('behind gate'))).toEqual([]);
+  });
+
+  it('words each requirement as the game does', () => {
+    const cloud = characters.find((character) => character.id === 1)!;
+    const joins: FieldSiteFile = { ...cutscene(2, [1, 2], 1, true), chara_icon: 1, joins: true } as FieldSiteFile;
+    const file = gateField(gate);
+    const names = { talks, characters };
+    expect(gateRequirement({ ...file, sites: [file.sites[0], joins, gate] }, 2, names)).toBe(`Make ${cloud.name} an ally`);
+    const title = talks.find((talk) => talk.id === 4)!.name;
+    expect(gateRequirement(file, 2, names)).toBe(`Clear ${title}`);
   });
 });
 
