@@ -219,8 +219,8 @@ export function SitePanel(props: {
             )}
             <p className={styles.meta}>
               Tapping the gate lists these. Once the last one is cleared, the game pans to the gate, marks it CLEARED and
-              plays the chains falling. The gate stays as a walkable hex. What it reveals stays in cloud until then, so
-              those hexes may only touch the gate and each other.
+              plays the chains falling. The gate stays as a walkable hex. The hexes it reveals may only touch the gate and
+              each other.
             </p>
           </Group>
         </>

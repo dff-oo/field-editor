@@ -119,24 +119,15 @@ function hexTip(file: FieldFile, at: HexAt, names: Names): string | null {
   if (index < 0) return null;
   const site = file.sites[index];
   const label = siteLabel(file, index, names.talks);
-  const behind = gateBehind(file, site);
-  const suffix = behind === null ? '' : ` · in cloud until gate ${behind} opens`;
   if (site.kind === 'move') {
     const offset = site.hexes.findIndex(([x, y]) => x === at[0] && y === at[1]);
-    return `Quest ${site.first_quest_id + offset} · ${label}${suffix}`;
+    return `Quest ${site.first_quest_id + offset} · ${label}`;
   }
   if (site.kind === 'gate') {
     const requirements = site.opens_when.map((id) => gateRequirement(file, id, names));
     return `Quest ${site.quest_id} · Gate · Requirements: ${requirements.join(', ') || 'none'}`;
   }
-  return `Quest ${site.quest_id} · ${label}${suffix}`;
-}
-
-/** The gate a site is revealed by, which keeps it hidden until the gate opens. */
-function gateBehind(file: FieldFile, site: FieldFile['sites'][number]): number | null {
-  if (site.revealed_by === null) return null;
-  const row = questHexes(file).find((entry) => entry.questId === site.revealed_by);
-  return row && file.sites[row.site]?.kind === 'gate' ? row.questId : null;
+  return `Quest ${site.quest_id} · ${label}`;
 }
 
 /** A cell is on the map only when its whole outline lies inside the painting. */
@@ -801,12 +792,6 @@ export function Editor() {
                   </g>
                 );
               })}
-              {file.sites.flatMap((site) => {
-                if (gateBehind(file, site) === null) return [];
-                return (site.kind === 'move' ? site.hexes : [site.hex]).map(([x, y]) => (
-                  <polygon key={`cloud-${x}-${y}`} points={hexOutline(x, y)} className={styles.behindGate} />
-                ));
-              })}
               {file.sites.flatMap((site, index) => {
                 if (site.kind !== 'cutscene' && site.kind !== 'battle') return [];
                 const { cx, cy } = hexPixel(site.hex[0], site.hex[1]);
@@ -877,12 +862,6 @@ export function Editor() {
                 ))}
                 <span><GameIcon name="start" size={20} /> Start</span>
                 <span><GameIcon name="goal" size={20} /> Goal</span>
-                <span>
-                  <svg className={styles.legendSwatch} viewBox="0 0 20 20" aria-hidden="true">
-                    <polygon points="5,2 15,2 20,10 15,18 5,18 0,10" className={styles.behindGate} />
-                  </svg>
-                  Behind a gate, in cloud until it opens
-                </span>
               </div>
             )}
           </div>

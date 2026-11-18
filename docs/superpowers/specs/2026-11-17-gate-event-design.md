@@ -63,7 +63,7 @@ All of this was found in `libDelta.so` and confirmed on the device.
 - A Gate kind button using the `gate` game icon, and a Gate legend entry.
 - Inspector: the hex, `revealed_by`, and an "Opens when cleared" multi-select of the field's other quests. Below it, a Requirements preview lists each condition as the game prints it ("Make Cloud an ally", "Clear Together We Forge On").
 - Map: the gate sprite on its red hex. The tooltip reads `Quest 209 · Gate · Requirements: Make Cloud an ally`.
-- Hexes behind a gate are drawn under a cloud wash with a dashed purple outline, and their tooltip says which gate they wait on. The legend explains the wash.
+- The map draws hexes behind a gate like any other hex. What stays in cloud is the server's and the client's rule, not the editor's.
 - Reveal outlines are unchanged: green for the sites a hex reveals, purple for its revealer.
 - The share link and JSON format carry the kind. The canonical key order is `quest_id, kind, hex, revealed_by, opens_when, notes`, then provenance.
 
