@@ -4,7 +4,7 @@ A gate is a kind of field site. It holds back the hexes behind it until a set of
 
 ## Field file
 
-The schema is mirrored in `dffoogg-field-editor/src/lib/field/schema.ts` and `dffoogg-server/src/field/schema.ts`.
+The schema is mirrored in `dff-oo-field-editor/src/lib/field/schema.ts` and `dff-oo-server/src/field/schema.ts`.
 
 ```json
 { "quest_id": 209, "kind": "gate", "hex": [11, 7], "revealed_by": 304, "opens_when": [312], "notes": "…" }
@@ -27,7 +27,7 @@ No site may share the gate's hex. The open gate is itself the hex the party walk
 
 Gate 209 at `[11, 7]` is revealed by 304 and opens when 312 ("Make Cloud an ally") is cleared. It holds back the cutscene 307 at `[9, 7]` and the move 366 at `[10, 7]`. Gate 213 at `[13, 5]` is revealed by 364 and opens when 312, 308 and 310 are all cleared.
 
-Field 1 exists in `dffoogg-server/fields/field-001.json` (local only), `dffoogg-field-editor/examples/field-001.json` and `dffoogg-fields/examples/field-001.json`, and they are kept identical. The server fixture `test/fixtures/chapter-one-field.json` is its compiled form.
+Field 1 exists in `dff-oo-server/fields/field-001.json` (local only), `dff-oo-field-editor/examples/field-001.json` and `dff-oo-fields/examples/field-001.json`, and they are kept identical. The server fixture `test/fixtures/chapter-one-field.json` is its compiled form.
 
 ## How the client handles a gate
 

@@ -26,7 +26,7 @@ import {
   WarningIcon,
   ZoomInIcon,
   ZoomOutIcon,
-} from '@dffoogg/omnia-ui';
+} from '@dff-oo/omnia-ui';
 import { fieldMapFor } from '@/lib/field-map';
 import { characterImageSrc, siteIcon } from '@/lib/game-icons';
 import { EMPTY_RESOURCES, loadResources, type Resources } from '@/lib/resources';

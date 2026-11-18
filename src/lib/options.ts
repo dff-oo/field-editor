@@ -1,4 +1,4 @@
-import type { ComboboxOption } from '@dffoogg/omnia-ui';
+import type { ComboboxOption } from '@dff-oo/omnia-ui';
 
 export type Option = ComboboxOption;
 

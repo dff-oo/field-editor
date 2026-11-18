@@ -2,13 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import characters from '@dffoogg/resources/characters.json';
-import enemies from '@dffoogg/resources/enemies.json';
-import abilities from '@dffoogg/resources/abilities.json';
-import items from '@dffoogg/resources/items.json';
-import summons from '@dffoogg/resources/summons.json';
-import stages from '@dffoogg/resources/stages.json';
-import talks from '@dffoogg/resources/talks.json';
+import characters from '@dff-oo/resources/characters.json';
+import enemies from '@dff-oo/resources/enemies.json';
+import abilities from '@dff-oo/resources/abilities.json';
+import items from '@dff-oo/resources/items.json';
+import summons from '@dff-oo/resources/summons.json';
+import stages from '@dff-oo/resources/stages.json';
+import talks from '@dff-oo/resources/talks.json';
 import { decodeEtc1 } from '../scripts/export-field-maps';
 import { fieldFileName, gateRequirement } from '../src/lib/edit';
 import { cdnSrc } from '../src/lib/cdn';
@@ -107,12 +107,12 @@ describe('field links', () => {
   });
 
   it('finds the token in a pasted link, fragment or bare token', () => {
-    expect(linkToken('https://dffoogg.github.io/field-editor/#f=v1.abc_-')).toBe('v1.abc_-');
+    expect(linkToken('https://dff-oo.github.io/field-editor/#f=v1.abc_-')).toBe('v1.abc_-');
     expect(linkToken('  #f=v1.abc\n')).toBe('v1.abc');
     expect(linkToken('f=v1.abc')).toBe('v1.abc');
     expect(linkToken('v1.abc')).toBe('v1.abc');
-    expect(linkToken('https://dffoogg.github.io/field-editor/')).toBe(null);
-    expect(linkToken('https://dffoogg.github.io/field-editor/#other')).toBe(null);
+    expect(linkToken('https://dff-oo.github.io/field-editor/')).toBe(null);
+    expect(linkToken('https://dff-oo.github.io/field-editor/#other')).toBe(null);
     expect(linkToken('   ')).toBe(null);
   });
 
@@ -126,7 +126,7 @@ describe('field maps', () => {
   it('points every manifest entry at a CDN map, and at a file when the CDN is checked out', () => {
     const entries = Object.entries(fieldMaps as Record<string, { file: string; scale: number }>);
     expect(entries.length).toBeGreaterThan(0);
-    const cdn = join(root, '..', 'dffoogg-cdn', 'maps');
+    const cdn = join(root, '..', 'dff-oo-cdn', 'maps');
     for (const [id, entry] of entries) {
       if (existsSync(cdn)) expect(existsSync(join(cdn, entry.file)), `field ${id}`).toBe(true);
       expect(fieldMapFor(Number(id))).toEqual({ url: cdnSrc(`maps/${entry.file}`), scale: entry.scale });

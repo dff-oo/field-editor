@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
-import { Button, CheckIcon, Checkbox, CloseIcon, Combobox, GameIcon, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dffoogg/omnia-ui';
+import { Button, CheckIcon, Checkbox, CloseIcon, Combobox, GameIcon, IconButton, PlusIcon, Select, TextField, TrashIcon } from '@dff-oo/omnia-ui';
 import { MISSION_TYPES } from '@/lib/field/compile';
 import type { MissionFile, RewardFile, FieldFile, FieldSiteFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';

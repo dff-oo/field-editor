@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { ThemeScript, TooltipProvider } from '@dffoogg/omnia-ui';
-import '@dffoogg/omnia-ui/tokens.css';
-import '@dffoogg/omnia-ui/globals.css';
+import { ThemeScript, TooltipProvider } from '@dff-oo/omnia-ui';
+import '@dff-oo/omnia-ui/tokens.css';
+import '@dff-oo/omnia-ui/globals.css';
 
 export const metadata: Metadata = {
   title: 'DFFOO field editor',

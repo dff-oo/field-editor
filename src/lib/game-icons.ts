@@ -1,4 +1,4 @@
-import type { GameIconName } from '@dffoogg/omnia-ui';
+import type { GameIconName } from '@dff-oo/omnia-ui';
 import { cdnSrc } from '@/lib/cdn';
 import type { Kind } from '@/lib/edit';
 import type { FieldSiteFile } from '@/lib/field/schema';
@@ -19,7 +19,7 @@ export function battleHelmet(site: { strong_enemy?: boolean; side_quest?: boolea
   return 'helmet-silver';
 }
 
-/** URL of a character's head in the CDN. `imageId` is the character's `image_id` in @dffoogg/resources. */
+/** URL of a character's head in the CDN. `imageId` is the character's `image_id` in @dff-oo/resources. */
 export function characterImageSrc(imageId: number): string {
   return cdnSrc(`characters/${imageId}.png`);
 }

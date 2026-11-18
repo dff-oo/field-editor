@@ -15,7 +15,7 @@ export const KINDS: { kind: Kind; label: string }[] = [
 ];
 
 export function emptyField(field: number): FieldFile {
-  return { $schema: 'https://dffoogg.github.io/field-editor/field.schema.json', field, sites: [] };
+  return { $schema: 'https://dff-oo.github.io/field-editor/field.schema.json', field, sites: [] };
 }
 
 export function fieldFileName(field: number): string {

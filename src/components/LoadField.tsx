@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Callout, Dialog, DialogClose, TextArea, UploadIcon } from '@dffoogg/omnia-ui';
+import { Button, Callout, Dialog, DialogClose, TextArea, UploadIcon } from '@dff-oo/omnia-ui';
 import { fieldFileSchema, type FieldFile } from '@/lib/field/schema';
 import { decodeField, linkToken } from '@/lib/share';
 import styles from './Editor.module.css';
@@ -103,7 +103,7 @@ export function LoadField(props: {
           description="Enter loads the link; Shift+Enter adds a new line."
           autoFocus
           value={link}
-          placeholder="https://dffoogg.github.io/field-editor/#f=v1.…"
+          placeholder="https://dff-oo.github.io/field-editor/#f=v1.…"
           className={styles.linkInput}
           onChange={(event) => {
             setLink(event.target.value);

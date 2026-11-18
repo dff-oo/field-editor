@@ -4,7 +4,7 @@ Field files are JSON. The editor loads and saves them in the browser; nothing in
 
 ## Names
 
-Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dffoogg/resources`, installed from the public [resources](https://github.com/dffoogg/resources) repository. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
+Enemy, character, ability, item, summon and field names, cutscene titles and mission texts come from `@dff-oo/resources`, installed from the public [resources](https://github.com/dff-oo/resources) repository. Stage names that have been checked live in [src/lib/stage-names.json](../src/lib/stage-names.json) and are merged over the extracted stage list. Mission kinds come from the resources package too.
 
 ## Run the editor
 
@@ -27,11 +27,11 @@ Click a hex, then choose what is on it: cutscene, battle, treasure or move. An o
 
 The download writes the canonical layout, so a diff is only the change you made.
 
-The field's painting is `maps/NNN.png` in the [CDN](https://github.com/dffoogg/cdn). It is placed by its size in hexes, measured in the client on Chapter 1: the square texture spans 20.83 columns and 21.17 rows, and hex (1, 1) sits 2.77 columns in from its left edge and 5.39 rows down from its top. Even columns sit half a row south. Fields with a different horizontal display scale are sized in proportion; only Chapter 1 has been checked in the client. A maintainer rebuilds the paintings with `npm run field-maps` when the client archive is on disk. See the [README](../README.md).
+The field's painting is `maps/NNN.png` in the [CDN](https://github.com/dff-oo/cdn). It is placed by its size in hexes, measured in the client on Chapter 1: the square texture spans 20.83 columns and 21.17 rows, and hex (1, 1) sits 2.77 columns in from its left edge and 5.39 rows down from its top. Even columns sit half a row south. Fields with a different horizontal display scale are sized in proportion; only Chapter 1 has been checked in the client. A maintainer rebuilds the paintings with `npm run field-maps` when the client archive is on disk. See the [README](../README.md).
 
 ## What a file contains
 
-One file is one field, or one act of a field. Files that share a `field` id are combined by the server: only one of them may set `world` or `goal`. Numeric ids are stored without names. The editor and error messages show the names from `@dffoogg/resources`.
+One file is one field, or one act of a field. Files that share a `field` id are combined by the server: only one of them may set `world` or `goal`. Numeric ids are stored without names. The editor and error messages show the names from `@dff-oo/resources`.
 
 Put the video or page that shows a site in `sources`. `notes` can still be written by hand; the editor keeps it but does not edit it, and the server ignores it.
 

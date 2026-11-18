@@ -152,14 +152,14 @@ function repoRoot(): string {
   return resolve(fileURLToPath(new URL('..', import.meta.url)));
 }
 
-/** The device archive in the dffoogg-game checkout next to this repo. DFFOO_GAME_DIR overrides it. */
+/** The device archive in the dff-oo-game checkout next to this repo. DFFOO_GAME_DIR overrides it. */
 function archiveRoot(): string {
-  return resolve(process.env.DFFOO_GAME_DIR ?? resolve(repoRoot(), '..', 'dffoogg-game'), 'archive');
+  return resolve(process.env.DFFOO_GAME_DIR ?? resolve(repoRoot(), '..', 'dff-oo-game'), 'archive');
 }
 
-/** The dffoogg/cdn checkout next to this repo, which serves the paintings. DFFOO_CDN_DIR overrides it. */
+/** The dff-oo/cdn checkout next to this repo, which serves the paintings. DFFOO_CDN_DIR overrides it. */
 function cdnRoot(): string {
-  return process.env.DFFOO_CDN_DIR ?? resolve(repoRoot(), '..', 'dffoogg-cdn');
+  return process.env.DFFOO_CDN_DIR ?? resolve(repoRoot(), '..', 'dff-oo-cdn');
 }
 
 /** The oo_tool package: DFFOO_UNPACKER, otherwise the devDependency in node_modules. */

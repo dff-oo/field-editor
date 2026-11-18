@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Combobox, Dialog, DialogClose, TextField } from '@dffoogg/omnia-ui';
+import { Button, Combobox, Dialog, DialogClose, TextField } from '@dff-oo/omnia-ui';
 import type { FieldFile } from '@/lib/field/schema';
 import type { Resources } from '@/lib/resources';
 import { emptyField } from '@/lib/edit';

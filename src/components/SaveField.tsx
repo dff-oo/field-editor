@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Callout, CopyField, Dialog, DialogClose, DownloadIcon } from '@dffoogg/omnia-ui';
+import { Button, Callout, CopyField, Dialog, DialogClose, DownloadIcon } from '@dff-oo/omnia-ui';
 import type { FieldFile } from '@/lib/field/schema';
 import { fieldFileName, saveFileAs } from '@/lib/edit';
 import { encodeField } from '@/lib/share';

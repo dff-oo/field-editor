@@ -1,5 +1,5 @@
 {
-  "name": "@dffoogg/field-editor",
+  "name": "@dff-oo/field-editor",
   "private": true,
   "scripts": {
     "predev": "tsx scripts/export-schema.ts",
@@ -10,8 +10,8 @@
     "field-maps": "tsx scripts/export-field-maps.ts"
   },
   "dependencies": {
-    "@dffoogg/omnia-ui": "github:dffoogg/omnia-ui#de49b68",
-    "@dffoogg/resources": "github:dffoogg/resources#2793b39",
+    "@dff-oo/omnia-ui": "github:dff-oo/omnia-ui#f695b5c",
+    "@dff-oo/resources": "github:dff-oo/resources#3714ef1",
     "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
