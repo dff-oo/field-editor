@@ -199,23 +199,28 @@ type SavePicker = (options: {
   types: { description: string; accept: Record<string, string[]> }[];
 }) => Promise<{ createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }> }>;
 
-/** Asks where to save; browsers without a save dialog download the file instead. */
+/**
+ * Asks where to save. Browsers without a save dialog, or that refuse to write through it
+ * (embedded and some Chromium browsers), download the file instead.
+ */
 export async function saveFileAs(name: string, file: FieldFile): Promise<void> {
   const blob = new Blob([formatField(file)], { type: 'application/json' });
   const picker = (window as { showSaveFilePicker?: SavePicker }).showSaveFilePicker;
   if (picker) {
-    let handle;
     try {
-      handle = await picker({ suggestedName: name, types: [{ description: 'Field', accept: { 'application/json': ['.json'] } }] });
+      const handle = await picker({ suggestedName: name, types: [{ description: 'Field', accept: { 'application/json': ['.json'] } }] });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      throw error;
     }
-    const writable = await handle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    return;
   }
+  download(name, blob);
+}
+
+function download(name: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
