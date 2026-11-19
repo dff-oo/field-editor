@@ -194,33 +194,12 @@ export function extendMove(file: FieldFile, index: number, at: HexAt): FieldFile
   return { ...file, sites };
 }
 
-type SavePicker = (options: {
-  suggestedName: string;
-  types: { description: string; accept: Record<string, string[]> }[];
-}) => Promise<{ createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }> }>;
-
 /**
- * Asks where to save. Browsers without a save dialog, or that refuse to write through it
- * (embedded and some Chromium browsers), download the file instead.
+ * Downloads the field as a JSON file. The File System Access save picker is not used: some browsers
+ * show it and then refuse to write, which leaves an empty file behind.
  */
-export async function saveFileAs(name: string, file: FieldFile): Promise<void> {
+export function downloadField(name: string, file: FieldFile): void {
   const blob = new Blob([formatField(file)], { type: 'application/json' });
-  const picker = (window as { showSaveFilePicker?: SavePicker }).showSaveFilePicker;
-  if (picker) {
-    try {
-      const handle = await picker({ suggestedName: name, types: [{ description: 'Field', accept: { 'application/json': ['.json'] } }] });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return;
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-    }
-  }
-  download(name, blob);
-}
-
-function download(name: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

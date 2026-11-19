@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Callout, CopyField, Dialog, DialogClose, DownloadIcon } from '@dff-oo/omnia-ui';
 import type { FieldFile } from '@/lib/field/schema';
-import { fieldFileName, saveFileAs } from '@/lib/edit';
+import { downloadField, fieldFileName } from '@/lib/edit';
 import { encodeField } from '@/lib/share';
 import styles from './Editor.module.css';
 
@@ -16,14 +16,12 @@ export function SaveField(props: {
 }) {
   const [link, setLink] = useState('');
   const [linkError, setLinkError] = useState('');
-  const [saveError, setSaveError] = useState('');
   const blocked = props.problems.length > 0;
 
   useEffect(() => {
     if (!props.open) {
       setLink('');
       setLinkError('');
-      setSaveError('');
       return;
     }
     if (!props.file || blocked) return;
@@ -56,11 +54,7 @@ export function SaveField(props: {
             startIcon={<DownloadIcon size={16} />}
             disabled={!props.file || blocked}
             onClick={() => {
-              if (!props.file) return;
-              setSaveError('');
-              void saveFileAs(fieldFileName(props.file.field), props.file).catch((error: unknown) => {
-                setSaveError(error instanceof Error ? error.message : String(error));
-              });
+              if (props.file) downloadField(fieldFileName(props.file.field), props.file);
             }}
           >
             Download JSON
@@ -84,11 +78,6 @@ export function SaveField(props: {
               <CopyField label="Share link" value={link} copyLabel="Copy link" />
             ) : (
               <p className={styles.note}>{linkError || 'Preparing the link…'}</p>
-            )}
-            {saveError && (
-              <Callout tone="danger" role="alert" title="The file was not saved">
-                {saveError}
-              </Callout>
             )}
           </>
         )}
